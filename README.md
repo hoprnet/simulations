@@ -1,4 +1,4 @@
-# Simulations
+# Simulations
 
 ## APR simulations
 First, head into the `apr_simulations` folder:
