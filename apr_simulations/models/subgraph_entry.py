@@ -19,14 +19,3 @@ class SubgraphEntry:
             node["safe"]["id"],
             node["safe"]["allowance"]["wxHoprAllowance"],
         )
-
-    def __str__(self):
-        return (
-            f"SubgraphEntry(node_address={self.node_address}, "
-            + f"wxHoprBalance={self.wxHoprBalance}, "
-            + f"safe_address={self.safe_address}), "
-            + f"safe_allowance={self.safe_allowance})"
-        )
-
-    def __repr__(self):
-        return str(self)

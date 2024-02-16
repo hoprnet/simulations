@@ -1,5 +1,14 @@
 from os import environ
 
+from helpers.graphql_provider import SafesProvider
+from helpers.hoprd_api import HoprdAPI
+from models.economic_model import (
+    BudgetParameters,
+    EconomicModel,
+    Equation,
+    Equations,
+    Parameters,
+)
 from models.peer import Address, Peer
 from models.subgraph_entry import SubgraphEntry
 from models.tolopogy_entry import TopologyEntry
@@ -117,3 +126,87 @@ class Utils:
         total_tf_stake = sum(peer.transformed_stake for peer in peers)
         for peer in peers:
             peer.reward_probability = peer.transformed_stake / total_tf_stake
+
+    @classmethod
+    def binsFromRange(cls, min: int, max: int, count: int):
+        min, max, count = int(min), int(max), int(count)
+        bins = list(range(min, max, int((max - min) / count)))
+        bin_size = (max - min) / count
+        bins.append(bins[-1] + bin_size)
+        return bins
+
+    @classmethod
+    def getEligiblesPeers(
+        cls,
+        topology: list[TopologyEntry],
+        peers: list[Peer],
+        safes: list[SubgraphEntry],
+        min_version: str,
+    ):
+        eligibles = Utils.mergeTopoPeersSafes(topology, peers, safes)
+
+        addresses_to_exclude = [
+            peer.address for peer in eligibles if peer.version_is_old(min_version)
+        ]
+        Utils.exclude(eligibles, addresses_to_exclude)
+
+        addresses_to_exclude = [
+            peer.address for peer in eligibles if peer.safe_allowance < 0
+        ]
+        Utils.exclude(eligibles, addresses_to_exclude)
+
+        Utils.allowManyNodePerSafe(eligibles)
+
+        return eligibles
+
+    @classmethod
+    async def getSafesData(cls):
+        key = "registeredNodesInNetworkRegistry"
+        query_id = "SUBGRAPH_SAFES_BALANCES_QUERY_ID"
+        safes_provider = SafesProvider(Utils.buildSubgraphURL(query_id))
+
+        results = list[SubgraphEntry]()
+        for safe in await safes_provider.get():
+            results.extend([SubgraphEntry.fromDict(node) for node in safe[key]])
+
+        return results
+
+    @classmethod
+    async def getTopologyData(cls, api: HoprdAPI):
+        channels = await api.all_channels(False)
+
+        results = await Utils.aggregatePeerBalanceInChannels(channels.all)
+        return [TopologyEntry.fromDict(*arg) for arg in results.items()]
+
+    @classmethod
+    async def getPeers(cls, api: HoprdAPI):
+        fields = ["peer_id", "peer_address", "reported_version"]
+
+        node_result = await api.peers(params=fields, quality=0.5)
+
+        return {Peer(*[item[f] for f in fields]) for item in node_result}
+
+    @classmethod
+    def getRewardProbability(
+        cls,
+        eligibles: list[Peer],
+        token_price: float,
+        budget_dollars: int,
+        limits: list[int],
+    ):
+        equations = Equations(
+            Equation("a * x", "l <= x <= c"),
+            Equation("a * c + (x - c) ** (1 / b)", "x > c"),
+        )
+
+        parameters = Parameters(1, 1.4, limits[1], limits[0])
+        budget_params = BudgetParameters(
+            budget_dollars / token_price, 2628000, 1, 365, 0.03, 1.0
+        )
+        economic_model = EconomicModel(equations, parameters, budget_params)
+
+        for peer in eligibles:
+            peer.economic_model = economic_model
+        Utils.rewardProbability(eligibles)
+
+        return eligibles

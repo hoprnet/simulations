@@ -59,7 +59,3 @@ class EconomicModel:
             func = self.equations.g_x
 
         return eval(func.formula, kwargs)
-
-    @property
-    def delay_between_distributions(self):
-        return self.budget.delay_between_distributions

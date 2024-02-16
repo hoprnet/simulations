@@ -17,20 +17,20 @@ class Peer:
     def __init__(self, id: str, address: str, version: str):
         self.address = Address(id, address)
         self.version = version
-        self.channel_balance = None
+        self.channel_balance = 0
 
-        self.safe_address = None
-        self.safe_balance = None
-        self.safe_allowance = None
+        self.safe_address = ""
+        self.safe_balance = 0
+        self.safe_allowance = 0
 
-        self._safe_address_count = None
+        self.safe_address_count = 1
 
         self.economic_model = None
-        self.reward_probability = None
+        self.reward_probability = 0
 
         self.max_apr = float("inf")
 
-    def version_is_old(self, min_version: str or Version) -> bool:
+    def version_is_old(self, min_version: str | Version) -> bool:
         if isinstance(min_version, str):
             min_version = Version(min_version)
 
@@ -41,7 +41,7 @@ class Peer:
         return self._version
 
     @version.setter
-    def version(self, value: str or Version):
+    def version(self, value: str | Version):
         if isinstance(value, str):
             value = Version(value)
 
@@ -52,15 +52,11 @@ class Peer:
         return self.address.address
 
     @property
-    def safe_address_count(self) -> int:
-        if self._safe_address_count is None:
-            self.safe_address_count = 1
+    def has_low_stake(self) -> bool:
+        if self.economic_model is None:
+            raise ValueError("Economic model not set")
 
-        return self._safe_address_count
-
-    @safe_address_count.setter
-    def safe_address_count(self, value: int):
-        self._safe_address_count = value
+        return self.split_stake < self.economic_model.parameters.l
 
     @property
     def transformed_stake(self) -> float:
@@ -92,14 +88,7 @@ class Peer:
         )
 
     @property
-    def has_low_stake(self) -> bool:
-        if self.economic_model is None:
-            raise ValueError("Economic model not set")
-
-        return self.split_stake < self.economic_model.parameters.l
-
-    @property
-    def max_expected_reward(self):
+    def rewards(self):
         if self.economic_model is None:
             raise ValueError("Economic model not set")
         if self.reward_probability is None:
@@ -108,108 +97,16 @@ class Peer:
         return self.reward_probability * self.economic_model.budget.budget
 
     @property
-    def expected_reward(self):
-        if self.economic_model is None:
-            raise ValueError("Economic model not set")
-
-        return (
-            self.apr_percentage
-            / 100.0
-            * self.split_stake
-            * self.economic_model.budget.period
-            / (60 * 60 * 24 * 365)
-        )
-
-    @property
-    def airdrop_reward(self):
-        if self.economic_model is None:
-            raise ValueError("Economic model not set")
-
-        return self.expected_reward * (1 - self.economic_model.budget.s)
-
-    @property
-    def protocol_reward(self):
-        if self.economic_model is None:
-            raise ValueError("Economic model not set")
-
-        return self.expected_reward * self.economic_model.budget.s
-
-    @property
-    def protocol_reward_per_distribution(self):
-        if self.economic_model is None:
-            raise ValueError("Economic model not set")
-
-        return self.protocol_reward / self.economic_model.budget.distribution_frequency
-
-    @property
-    def message_count_for_reward(self):
-        if self.economic_model is None:
-            raise ValueError("Economic model not set")
-
-        budget = self.economic_model.budget
-        denominator = budget.ticket_price * budget.winning_probability
-
-        return round(self.protocol_reward_per_distribution / denominator)
-
-    @property
-    def apr_percentage(self):
+    def apr(self):
         if self.economic_model is None:
             raise ValueError("Economic model not set")
 
         seconds_in_year = 60 * 60 * 24 * 365
         period = self.economic_model.budget.period
 
-        apr = (
-            (self.max_expected_reward / self.split_stake)
-            * (seconds_in_year / period)
-            * 100
-        )
+        apr = (self.rewards / self.split_stake) * (seconds_in_year / period)
 
         return min(self.max_apr, apr)
-
-    @property
-    def complete(self) -> bool:
-        # check that none of the attributes are None
-        return all(
-            [
-                self.address is not None,
-                self.channel_balance is not None,
-                self.safe_address is not None,
-                self.safe_balance is not None,
-                self.safe_allowance is not None,
-            ]
-        )
-
-    @classmethod
-    def attributesToExport(cls):
-        return [
-            "node_address",
-            "channel_balance",
-            "safe_address",
-            "safe_balance",
-            "total_balance",
-            "safe_address_count",
-            "split_stake",
-            "transformed_stake",
-            "apr_percentage",
-            "max_expected_reward",
-            "expected_reward",
-            "airdrop_reward",
-            "protocol_reward",
-            "protocol_reward_per_distribution",
-            "message_count_for_reward",
-        ]
-
-    @classmethod
-    def toCSV(cls, peers: list) -> list[list[str]]:
-        attributes = Peer.attributesToExport()
-        lines = [["peer_id"] + attributes]
-
-        for peer in peers:
-            line = [peer.address.id] + [getattr(peer, attr) for attr in attributes]
-            lines.append(line)
-
-        return lines
 
     def __repr__(self):
         return f"Peer(address: {self.address})"
