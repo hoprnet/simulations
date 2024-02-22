@@ -223,7 +223,7 @@ class Utils:
         return eligibles
 
     @classmethod
-    def storeSnapshot(
+    def dumpSnapshot(
         cls,
         peers: list[Peer],
         safes: list[SubgraphEntry],
