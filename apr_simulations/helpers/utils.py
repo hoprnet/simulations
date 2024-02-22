@@ -1,4 +1,9 @@
+import pickle
+
+# get current date and time as a string
+from datetime import datetime
 from os import environ
+from pathlib import Path
 
 from helpers.graphql_provider import SafesProvider
 from helpers.hoprd_api import HoprdAPI
@@ -17,7 +22,10 @@ from models.tolopogy_entry import TopologyEntry
 class Utils:
     @classmethod
     def envvar(cls, key, type: type, default=None):
-        return type(environ.get(key, default))
+        var = environ.get(key, default)
+        if var is None:
+            return default
+        return type(var)
 
     @classmethod
     def apiHostAndKey(cls, envhost: str, envkey: str):
@@ -172,15 +180,18 @@ class Utils:
         return results
 
     @classmethod
-    async def getTopologyData(cls, api: HoprdAPI):
+    async def getTopologyData(cls):
+        api = HoprdAPI(*Utils.apiHostAndKey("API_HOST", "API_KEY"))
+
         channels = await api.all_channels(False)
 
         results = await Utils.aggregatePeerBalanceInChannels(channels.all)
         return [TopologyEntry.fromDict(*arg) for arg in results.items()]
 
     @classmethod
-    async def getPeers(cls, api: HoprdAPI):
+    async def getPeers(cls):
         fields = ["peer_id", "peer_address", "reported_version"]
+        api = HoprdAPI(*Utils.apiHostAndKey("API_HOST", "API_KEY"))
 
         node_result = await api.peers(params=fields, quality=0.5)
 
@@ -210,3 +221,37 @@ class Utils:
         Utils.rewardProbability(eligibles)
 
         return eligibles
+
+    @classmethod
+    def storeSnapshot(
+        cls,
+        peers: list[Peer],
+        safes: list[SubgraphEntry],
+        topology: list[TopologyEntry],
+    ):
+        date_time = datetime.now().strftime("%Y_%m_%d_%H_%M")
+
+        folder_path = Path(f"snapshots/{date_time}")
+        folder_path.mkdir(parents=True, exist_ok=True)
+
+        with open(folder_path.joinpath("peers.pkl"), "wb") as f:
+            pickle.dump(peers, f)
+
+        with open(folder_path.joinpath("safes.pkl"), "wb") as f:
+            pickle.dump(safes, f)
+
+        with open(folder_path.joinpath("topology.pkl"), "wb") as f:
+            pickle.dump(topology, f)
+
+    @classmethod
+    def loadSnapshot(cls, folder: str):
+        with open(f"snapshots/{folder}/peers.pkl", "rb") as f:
+            peers = pickle.load(f)
+
+        with open(f"snapshots/{folder}/safes.pkl", "rb") as f:
+            safes = pickle.load(f)
+
+        with open(f"snapshots/{folder}/topology.pkl", "rb") as f:
+            topology = pickle.load(f)
+
+        return peers, safes, topology
