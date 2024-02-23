@@ -12,12 +12,13 @@ cd apr_simulations
 pip install -r requirements.txt
 ```
 
-- Declare a bunch of environment variables (can be through a .env file):
+If you want to an updated version with the current running nodes in the network: declare a bunch of environment variables (can be through a .env file):
   - `API_HOST`: HOPRd node running on <2.1.0
   - `API_KEY`: API token 
   - `SUBGRAPH_DEPLOYER_KEY`: Subgraph deployer key
   - `SUBGRAPH_SAFES_BALANCES_QUERY_ID`: Query ID to the safe subgraph 
 
+If not set, a snapshot of data from the past will be used (see snapshot dates in the `snapshot` folder).
 ### Generate `requirements.txt`
 - Install `pipreqsnb` via pip:
 ```
