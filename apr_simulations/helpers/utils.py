@@ -5,6 +5,8 @@ from datetime import datetime
 from os import environ
 from pathlib import Path
 
+import requests
+
 from helpers.graphql_provider import SafesProvider
 from helpers.hoprd_api import HoprdAPI
 from models.economic_model import (
@@ -229,7 +231,7 @@ class Utils:
         safes: list[SubgraphEntry],
         topology: list[TopologyEntry],
     ):
-        date_time = datetime.now().strftime("%Y_%m_%d_%H_%M")
+        date_time = datetime.now().strftime("%Y_%m_%d")
 
         folder_path = Path(f"snapshots/{date_time}")
         folder_path.mkdir(parents=True, exist_ok=True)

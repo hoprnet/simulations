@@ -1,3 +1,4 @@
+import random
 from packaging.version import Version
 
 
@@ -116,3 +117,11 @@ class Peer:
 
     def __hash__(self):
         return hash(self.address)
+    
+    @classmethod
+    def extra(cls, random_range: list[int]):
+        extra = Peer("extra_peer", "extra_address", "100.0.0")
+        extra.safe_address = "extra_safe"
+        extra.safe_balance = random.randint(*random_range)
+
+        return extra
