@@ -206,13 +206,15 @@ class Utils:
         token_price: float,
         budget_dollars: int,
         limits: list[int],
+        slope: float,
+        flattening_factor: float,
     ):
         equations = Equations(
             Equation("a * x", "l <= x <= c"),
             Equation("a * c + (x - c) ** (1 / b)", "x > c"),
         )
 
-        parameters = Parameters(1, 1.4, limits[1], limits[0])
+        parameters = Parameters(slope, flattening_factor, limits[1], limits[0])
         budget_params = BudgetParameters(
             budget_dollars / token_price, 2628000, 1, 365, 0.03, 1.0
         )
@@ -227,33 +229,25 @@ class Utils:
     @classmethod
     def dumpSnapshot(
         cls,
-        peers: list[Peer],
-        safes: list[SubgraphEntry],
-        topology: list[TopologyEntry],
+        **kwargs
     ):
         date_time = datetime.now().strftime("%Y_%m_%d")
 
         folder_path = Path(f"snapshots/{date_time}")
         folder_path.mkdir(parents=True, exist_ok=True)
 
-        with open(folder_path.joinpath("peers.pkl"), "wb") as f:
-            pickle.dump(peers, f)
-
-        with open(folder_path.joinpath("safes.pkl"), "wb") as f:
-            pickle.dump(safes, f)
-
-        with open(folder_path.joinpath("topology.pkl"), "wb") as f:
-            pickle.dump(topology, f)
+        for key, value in kwargs.items():
+            with open(f"{folder_path}/{key}.pkl", "wb") as f:
+                pickle.dump(value, f)
 
     @classmethod
-    def loadSnapshot(cls, folder: str):
-        with open(f"snapshots/{folder}/peers.pkl", "rb") as f:
-            peers = pickle.load(f)
-
-        with open(f"snapshots/{folder}/safes.pkl", "rb") as f:
-            safes = pickle.load(f)
-
-        with open(f"snapshots/{folder}/topology.pkl", "rb") as f:
-            topology = pickle.load(f)
-
-        return peers, safes, topology
+    def loadSnapshot(cls, folder: str, *args):
+        data = []
+        for key in args:
+            if not Path(f"snapshots/{folder}/{key}.pkl").exists():
+                return None
+            
+            with open(f"snapshots/{folder}/{key}.pkl", "rb") as f:
+                data.append(pickle.load(f))
+            
+        return data
