@@ -29,3 +29,20 @@ pip install pipreqsnb
 ```bash
 pipreqsnb . --ignore ".venv" --force
 ```
+
+
+## List outgoing channels
+This module allows you to, from a safe address, get all the connected nodes, for each node get all the outgoing channels, and sum up their balances.
+The modules requires two environment variables:
+- `NODE_ADDRESS`: Full address of a running HOPRd node (format: `https://host:port`)
+- `NODE_KEY`: Its corresponding API token
+
+### Run the module
+To run the module, use the following command:
+
+```
+python -m list_outgoing_balances --address <SAFE_ADDRESS> [--output <JSON_OUTPUT_PATH>]
+```
+
+- The `<SAFE_ADDRESS>` parameter is required
+- The `<JSON_OUTPUT_PATH>` parameter is optional. By default it is set to `results.json`
