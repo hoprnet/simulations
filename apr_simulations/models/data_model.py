@@ -4,13 +4,14 @@ class DataModel:
     def __init__(self, use_snapshot: bool):
         self.use_snapshot = use_snapshot
 
-    def get_data(self, folder: str = None):
+    async def get_data(self, folder: str = None):
         if self.use_snapshot:
             if folder is None:
                 raise ValueError("folder must be provided when using snapshot")
             self.load_snapshot(folder)
         else:
-            asyncio.run(self.getDynamicData())
+            await self.get_dynamic_data()
+            self.dump_snapshot(folder)
 
     async def get_dynamic_data(self):
         raise NotImplementedError
