@@ -46,3 +46,8 @@ python -m list_outgoing_balances --address <SAFE_ADDRESS> [--output <JSON_OUTPUT
 
 - The `<SAFE_ADDRESS>` parameter is required
 - The `<JSON_OUTPUT_PATH>` parameter is optional. By default it is set to `results.json`
+
+## Scripts
+
+- `low_stake_safes.sh`: list all safes that have stake lower than 10000wxHOPR (or value from THRESHOLD env var). Stores results to `low_stake_addresses.csv`
+- `safe_probe.sh`: check all nodes from csv input file (specified as CLI's first argument) if they have an associated safe. Format of input file should be two column csv (node address and multi-address), see `scripts/new_node_multiaddr.csv`. Stores results to `no_safes_addresses.csv`
