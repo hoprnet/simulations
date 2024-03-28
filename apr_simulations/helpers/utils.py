@@ -1,7 +1,7 @@
 import pickle
 
 # get current date and time as a string
-from datetime import datetime, timedelta
+from datetime import datetime
 from os import environ
 from pathlib import Path
 
@@ -22,14 +22,6 @@ from models.tolopogy_entry import TopologyEntry
 
 
 class Utils:
-    @classmethod
-    def daysInThePast(cls, days: int):
-        return datetime.now() - timedelta(days=days)
-    
-    @classmethod
-    def utf8len(cls, s: str):
-        return len(s.encode())
-    
     @classmethod
     def envvar(cls, key, type: type, default=None):
         var = environ.get(key, default)
