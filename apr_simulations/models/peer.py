@@ -1,4 +1,5 @@
 import random
+from typing import Union
 from packaging.version import Version
 
 
@@ -31,7 +32,7 @@ class Peer:
 
         self.max_apr = float("inf")
 
-    def version_is_old(self, min_version: str | Version) -> bool:
+    def version_is_old(self, min_version: Union[str, Version]) -> bool:
         if isinstance(min_version, str):
             min_version = Version(min_version)
 
@@ -42,7 +43,7 @@ class Peer:
         return self._version
 
     @version.setter
-    def version(self, value: str | Version):
+    def version(self, value: Union[str, Version]):
         if isinstance(value, str):
             value = Version(value)
 
