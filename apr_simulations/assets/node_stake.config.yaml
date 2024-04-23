@@ -1,0 +1,84 @@
+---
+- name: histogram
+  description: '1. Histogram'
+- name: distribution
+  description: '2. Distribution'
+- name: prices
+  description: '3. Prices'
+- name: investors
+  description: '4. Investors'
+---
+floats:
+  - name: slope
+    value: 1.0
+    min: 0.1
+    max: 2.0
+    step: 0.1
+    description: 'Slope'
+    group: distribution
+    
+  - name: flattening_factor
+    value: 1.4
+    min: 1.0
+    max: 3.0
+    step: 0.1
+    description: 'Flattening factor'
+    group: distribution
+    
+  - name: target_apr
+    value: 10.4
+    min: 0.1
+    max: 20.0
+    step: 0.1
+    description: 'Target APR'
+    group: prices
+    
+  - name: token_price
+    value: 0.111
+    min: 0.01
+    max: 0.20
+    step: 0.001
+    description: 'Token price ($)'
+    group: prices
+    
+  - name: extra_apr
+    value: 1.0
+    min: 1.0
+    max: 10.0
+    step: 0.1
+    description: 'APR boost'
+    group: investors
+  
+ints:
+  - name: bin_count
+    value: 15
+    min: 5
+    max: 30
+    step: 1
+    description: 'Bins count'
+    group: histogram
+
+  - name: extra_nodes
+    value: 0
+    min: 0
+    max: 300
+    step: 1
+    description: 'Count'
+    group: investors
+
+intranges:
+  - name: limits
+    value: [10000, 75000]
+    min: 0
+    max: 500000
+    step: 5000
+    description: 'Thresholds'
+    group: distribution
+  
+  - name: extra_stake
+    value: [25000, 350000]
+    min: 0
+    max: 500000
+    step: 5000
+    description: 'Stake'
+    group: investors

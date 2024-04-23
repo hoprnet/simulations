@@ -50,7 +50,7 @@ floats:
     group: curve_1
   
   - name: B2
-    value: 5.0
+    value: 6.8
     min: 0.0
     max: 10.0
     step: 0.01
@@ -113,4 +113,6 @@ ints:
     step: 5
     description: 'Theta'
     group: ui
+
+intranges: []
 ...
