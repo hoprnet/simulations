@@ -5,8 +5,6 @@ from datetime import datetime, timedelta
 from os import environ
 from pathlib import Path
 
-import requests
-
 from helpers.graphql_provider import SafesProvider
 from helpers.hoprd_api import HoprdAPI
 from models.economic_model import (
@@ -19,7 +17,9 @@ from models.economic_model import (
 from models.peer import Address, Peer
 from models.subgraph_entry import SubgraphEntry
 from models.tolopogy_entry import TopologyEntry
+from models.interactive_parameter import InteractiveParameter, IntParameter, FloatParameter, IntRangeParameter
 
+import yaml
 
 class Utils:
     @classmethod
@@ -259,3 +259,20 @@ class Utils:
                 data.append(pickle.load(f))
             
         return data
+    
+    @classmethod
+    def loadSimulationConfigFile(cls, path: str) -> list[InteractiveParameter]:
+        with open(path, 'r') as file:
+            groups_config, params_config = list(yaml.safe_load_all(file))
+
+        groups = {item['name']:item['description'] for item in groups_config}
+        params = [
+            *[FloatParameter(**item) for item in params_config['floats']], 
+            *[IntParameter(**item) for item in params_config['ints']],
+            *[IntRangeParameter(**item) for item in params_config['intranges']]
+        ]
+
+        for param in params:
+            param.group = groups[param.group]
+
+        return params
