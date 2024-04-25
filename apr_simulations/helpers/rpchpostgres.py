@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import Session
 
+
 class RPChPostgres:
     def __init__(self):
         self.username = Utils.envvar("PG_USERNAME", str)

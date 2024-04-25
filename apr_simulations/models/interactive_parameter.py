@@ -1,5 +1,6 @@
+from enum import Enum
 from typing import Any, Callable, Union
-from ipywidgets import FloatSlider, IntSlider, IntRangeSlider
+from ipywidgets import FloatSlider, IntSlider, IntRangeSlider, Text
 
 class InteractiveParameter:
     T = Any
@@ -54,3 +55,15 @@ class IntRangeParameter(InteractiveParameter):
     def __init__(self, name: str, value: list[T], min: T, max: T, step: T, description: str = "", group="default"):
         [self.validate_argument(item) for item in [*value, min, max, step]]
         super().__init__(IntRangeSlider, name, value, min, max, step, description, group)
+
+class TextParameter(InteractiveParameter):
+    T = str
+    def __init__(self, name: str, value: T, description: str = "", group="default"):
+        self.validate_argument(value)
+        super().__init__(Text, name, value, None, None, None, description, group)
+
+class ParameterType(Enum):
+    floats = FloatParameter
+    ints = IntParameter
+    intranges = IntRangeParameter
+    texts = TextParameter
