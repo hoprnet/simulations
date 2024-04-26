@@ -17,7 +17,7 @@ from models.economic_model import (
 from models.peer import Address, Peer
 from models.subgraph_entry import SubgraphEntry
 from models.tolopogy_entry import TopologyEntry
-from models.interactive_parameter import InteractiveParameter, IntParameter, FloatParameter, IntRangeParameter, TextParameter, ParameterType
+from models.interactive_parameter import InteractiveParameter, ParameterType
 
 import yaml
 
@@ -282,22 +282,3 @@ class Utils:
                 data.append(pickle.load(f))
             
         return data
-    
-    @classmethod
-    def loadSimulationConfigFile(cls, path: str) -> list[InteractiveParameter]:
-        with open(path, 'r') as file:
-            groups_config, params_config = list(yaml.safe_load_all(file))
-
-        groups = {item['name']:item['description'] for item in groups_config}
-        types = list(filter(lambda x: not x.startswith("_"), dir(ParameterType)))
-        params = []
-
-        for t in types:
-            if t not in params_config:
-                continue
-            params += [getattr(ParameterType, t).value(**item) for item in params_config[t]]
-
-        for param in params:
-            param.group = groups[param.group]
-
-        return params
