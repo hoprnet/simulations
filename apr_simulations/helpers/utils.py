@@ -5,8 +5,6 @@ from datetime import datetime, timedelta
 from os import environ
 from pathlib import Path
 
-import requests
-
 from helpers.graphql_provider import SafesProvider
 from helpers.hoprd_api import HoprdAPI
 from models.economic_model import (
@@ -19,7 +17,9 @@ from models.economic_model import (
 from models.peer import Address, Peer
 from models.subgraph_entry import SubgraphEntry
 from models.tolopogy_entry import TopologyEntry
+from models.interactive_parameter import InteractiveParameter, ParameterType
 
+import yaml
 
 class Utils:
     @classmethod
@@ -233,14 +233,37 @@ class Utils:
         Utils.rewardProbability(eligibles)
 
         return eligibles
+    
+    @classmethod
+    def addExtraNodes(cls, count: int, extra_stake: int, extra_apr: float, target_apr: float, token_price: float, limits: list[int], slope: float, flattening_factor: float, eligibles: list[Peer]):
+        for _ in range(count):
+            eligibles.append(Peer.extra(extra_stake))
 
+        total_stake = sum(peer.split_stake for peer in eligibles if peer.split_stake > limits[0])
+        budget_dollars = target_apr * total_stake / 12 / 100 * token_price
+
+        eligibles = Utils.getRewardProbability(eligibles, token_price, budget_dollars, limits, slope, flattening_factor)
+
+        # probability adjustment
+        for peer in eligibles:
+            if "extra_address" not in peer.address.address:
+                continue
+            peer.reward_probability *= extra_apr
+
+        total_probability = sum(peer.reward_probability for peer in eligibles)
+
+        # normalize the probability
+        for peer in eligibles:
+            peer.reward_probability /= total_probability
+
+        return eligibles
+    
     @classmethod
     def dumpSnapshot(
         cls,
         **kwargs
     ):
         date_time = datetime.now().strftime("%Y_%m_%d")
-
         folder_path = Path(f"snapshots/{date_time}")
         folder_path.mkdir(parents=True, exist_ok=True)
 

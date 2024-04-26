@@ -1,5 +1,3 @@
-import asyncio
-
 class DataModel:
     def __init__(self, use_snapshot: bool):
         self.use_snapshot = use_snapshot
