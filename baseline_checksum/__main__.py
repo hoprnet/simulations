@@ -148,18 +148,19 @@ async def main():
         for event in block.events:
             print(f"  {event}")
 
+
     # calculate checksums
     # ISSUE SOMEWHERE AFTER HERE
-    checksums = [keccak_256(bytearray.fromhex("0"*64))]
-
-    for block in blocks:
+    checksums: list[bytearray] = [keccak_256(bytearray.fromhex("0"*64))]
+    
+    for block in blocks[:10]:
         cat_str = b''.join([checksums[-1], block.keccak_256()])
-        checksums.append(keccak_256(cat_str))
+        checksum = keccak_256(cat_str)
+        checksums.append(checksum)
 
-    for block, checksum in zip(blocks, checksums[:5]):
-        if block.number % 5 != 0:
-            continue
-        print(f"checksum @ block {block.number}: {checksum.hex()} ({len(block.events)} log(s))")
+        if block.number % 5 == 0:
+            print(f"checksum @ block {block.number}: {checksum.hex()} ({len(block.events)} log(s))")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
