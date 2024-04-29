@@ -2,6 +2,7 @@ import asyncio
 import os
 from pathlib import Path
 import pickle
+import click
 import sha3
 
 from .graphql_provider import EventsProvider
@@ -10,18 +11,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-INITIAL_BLOCK = 29706814
-# DUNE_API_KEY = os.environ.get("DUNE_API_KEY")
-# DUNE_QUERY_ID = os.environ.get("DUNE_QUERY_ID")
-# url = f"https://gateway-arbitrum.network.thegraph.com/api/{DUNE_API_KEY}/subgraphs/id/{DUNE_QUERY_ID}"
-url = "https://api.studio.thegraph.com/query/58438/logs-for-hoprd/v0.2.0"
+BOLD = "\033[1m"
+RESET = "\033[0m"
+
+DUNE_API_KEY = os.environ.get("DUNE_API_KEY")
+DUNE_QUERY_ID = os.environ.get("DUNE_QUERY_ID")
+url = f"https://gateway-arbitrum.network.thegraph.com/api/{DUNE_API_KEY}/subgraphs/id/{DUNE_QUERY_ID}"
+# url = "https://api.studio.thegraph.com/query/58438/logs-for-hoprd/v0.2.0"
 
 def keccak_256(input: bytearray):
     k = sha3.keccak_256()
     k.update(input)
     return bytearray.fromhex(k.hexdigest())
-
-
 
 class Event:
     def __init__(self, id: str, block_number: int, log_index: int, tx_index: int, evt_name: str, tx_hash: str):
@@ -77,10 +78,10 @@ class Block:
         return keccak_256(b''.join([event.tx_hash_bytes for event in self.events]))
 
 
-async def events_from_subgraph(folder: Path):
+async def events_from_subgraph(folder: Path, initial_block):
     provider = EventsProvider(url)
     data = []
-    temp_data = await provider.get(block_number="0")
+    temp_data = await provider.get(block_number=str(initial_block))
 
     with open(folder.joinpath("part_0.pkl"), "wb") as f:
         pickle.dump(temp_data, f)
@@ -119,19 +120,21 @@ def events_from_local_files(folder: Path):
     print("\rLoading done!")
     return data
 
-async def main():
+@click.command()
+@click.option("--block", default=29706814, help="The block number to start from")
+@click.option("--path", default="./foo_results", help="The folder to store the data in")
+def main(block, path):
     # import data, either from local files or from the subgraph API
-    folder = Path("./foo_results")
+    folder = Path(path)
     if folder.exists():
         data = events_from_local_files(folder)
     else:
         folder.mkdir()
-        data = await events_from_subgraph(folder)
+        data = asyncio.run(events_from_subgraph(folder, block))
 
     # remove duplicates and sort by block_number, tx_index, log_index
     events = list(set([Event.fromDict(d) for d in data]))
     events.sort()
-    events = filter(lambda e: e.block_number >= INITIAL_BLOCK, events)
 
     # create blocks out of events
     blocks: list[Block] = []
@@ -141,26 +144,26 @@ async def main():
 
         blocks[-1].add_event(event)
 
+    print(f"Retrieved {len(blocks)} blocks ({len(events)} events)")
+
     # show block and events structure
-    print(f"Retrieved {len(blocks)} blocks")
+    print("\n" + "-"*os.get_terminal_size().columns)
     for block in blocks[:5]:
-        print(f"Block {block.number} with {len(block.events)} event(s). Keccak256: {block.keccak_256().hex()}")
+        print(f"{BOLD}Block {block.number}{RESET} with {len(block.events)} event(s). Keccak256: {block.keccak_256().hex()}")
         for event in block.events:
             print(f"  {event}")
-
-
-    # calculate checksums
-    # ISSUE SOMEWHERE AFTER HERE
-    checksums: list[bytearray] = [keccak_256(bytearray.fromhex("0"*64))]
+    print("-"*os.get_terminal_size().columns + "\n")
     
-    for block in blocks[:10]:
+    # calculate checksums
+    checksums: list[bytearray] = [bytearray(32)]
+    for block in blocks[:20]:
         cat_str = b''.join([checksums[-1], block.keccak_256()])
         checksum = keccak_256(cat_str)
         checksums.append(checksum)
 
         if block.number % 5 == 0:
-            print(f"checksum @ block {block.number}: {checksum.hex()} ({len(block.events)} log(s))")
+            print(f"checksum @ block {BOLD}{block.number}{RESET}: {checksum.hex()} ({len(block.events)} log(s))")
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()
