@@ -17,7 +17,6 @@ RESET = "\033[0m"
 DUNE_API_KEY = os.environ.get("DUNE_API_KEY")
 DUNE_QUERY_ID = os.environ.get("DUNE_QUERY_ID")
 url = f"https://gateway-arbitrum.network.thegraph.com/api/{DUNE_API_KEY}/subgraphs/id/{DUNE_QUERY_ID}"
-# url = "https://api.studio.thegraph.com/query/58438/logs-for-hoprd/v0.2.0"
 
 def keccak_256(input: bytearray):
     k = sha3.keccak_256()
@@ -27,9 +26,9 @@ def keccak_256(input: bytearray):
 class Event:
     def __init__(self, id: str, block_number: int, log_index: int, tx_index: int, evt_name: str, tx_hash: str):
         self.id = id
-        self.block_number: str = block_number
-        self.log_index: str = log_index
-        self.tx_index: str = tx_index
+        self.block_number: int = int(block_number)
+        self.log_index: str = int(log_index)
+        self.tx_index: str = int(tx_index)
         self.tx_hash: str = tx_hash
         self.evt_name: str = evt_name
 
@@ -69,6 +68,7 @@ class Event:
 class Block:
     def __init__(self, block_number: int):
         self.number = block_number
+        self.checksum = None
         self.events: list[Event] = []
 
     def add_event(self, event: Event):
@@ -121,16 +121,17 @@ def events_from_local_files(folder: Path):
     return data
 
 @click.command()
-@click.option("--block", default=29706814, help="The block number to start from")
+@click.option("--minblock", default=29706814, help="The block number to start from")
 @click.option("--path", default="./foo_results", help="The folder to store the data in")
-def main(block, path):
+@click.option("--blocknumber", default=None, type=int, help="A specific block to calculate the checksum for")
+def main(minblock, path, blocknumber):
     # import data, either from local files or from the subgraph API
     folder = Path(path)
     if folder.exists():
         data = events_from_local_files(folder)
     else:
         folder.mkdir()
-        data = asyncio.run(events_from_subgraph(folder, block))
+        data = asyncio.run(events_from_subgraph(folder, minblock))
 
     # remove duplicates and sort by block_number, tx_index, log_index
     events = list(set([Event.fromDict(d) for d in data]))
@@ -156,14 +157,28 @@ def main(block, path):
     
     # calculate checksums
     checksums: list[bytearray] = [bytearray(32)]
-    for block in blocks[:20]:
+    for block in blocks:
         cat_str = b''.join([checksums[-1], block.keccak_256()])
-        checksum = keccak_256(cat_str)
-        checksums.append(checksum)
+        block.checksum = keccak_256(cat_str)
+        checksums.append(keccak_256(cat_str))
 
-        if block.number % 5 == 0:
-            print(f"checksum @ block {BOLD}{block.number}{RESET}: {checksum.hex()} ({len(block.events)} log(s))")
+        if blocknumber and block.number == blocknumber:
+            break
+
+    if blocknumber:
+        index = [block.number for block in blocks].index(blocknumber)
+        block = blocks[index]
+
+    print(f"checksum @ block {BOLD}{block.number}{RESET}: {block.checksum.hex()} ({len(block.events)} log(s))")
 
 
 if __name__ == "__main__":
     main()
+
+
+
+#  OK: 29839885
+# NOK: 29839895
+
+
+# NOT IN LIST: 29839905
