@@ -149,6 +149,7 @@ async def main():
             print(f"  {event}")
 
     # calculate checksums
+    # ISSUE SOMEWHERE AFTER HERE
     checksums = [keccak_256(bytearray.fromhex("0"*64))]
 
     for block in blocks:
