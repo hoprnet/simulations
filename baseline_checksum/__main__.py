@@ -78,14 +78,11 @@ def main(minblock: int, path, blocknumber, blocksfile):
 
 
     # show block and events structure
-    print(f"Retrieved range of blocks from #{blocks[0].number} to #{blocks[-1].number}")
-    print("\n" + "-"*os.get_terminal_size().columns)
-    for block in blocks[:5]:
-        print(f"{BOLD}Block {block.number}{RESET} with {len(block.events)} event(s). Keccak256: {block.keccak_256().hex()}")
-        for event in block.events:
-            print(f"  {event}")
-    if len(blocks) > 5:
-        print("...")
+    print(f"\nRetrieved range of blocks from #{blocks[0].number} to #{blocks[-1].number}")
+    print("-"*os.get_terminal_size().columns)
+    print(blocks[0])
+    print("...")
+    print(blocks[-1])
     print("-"*os.get_terminal_size().columns + "\n")
     
     # show checksum for specific block
@@ -94,10 +91,8 @@ def main(minblock: int, path, blocknumber, blocksfile):
         print(f"Block {blocknumber} not in retrieved blocks")
         return
     
-    index = block_numbers.index(blocknumber) if blocknumber else -1
-    block = blocks[index]
+    block = blocks[block_numbers.index(blocknumber) if blocknumber else -1]
     print(f"checksum @ block {BOLD}{block.number}{RESET}: {block.checksum.hex()}")
-    print(f"{len(block.events)} log(s)):")
     for event in block.events:
         print(f"  {event}")
 
