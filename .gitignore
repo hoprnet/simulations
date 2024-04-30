@@ -5,3 +5,7 @@
 *.direnv
 *.json
 *.csv
+foo_*.*
+_foo_*.*
+foo_*/*
+_foo_*/*
