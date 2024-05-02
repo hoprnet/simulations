@@ -1,16 +1,11 @@
 import click
-import os
-
-from dotenv import load_dotenv
 from pathlib import Path
 
 from .block import BlocksIO
 
-# load_dotenv()
+RESET = "\033[0m"
+BOLD = "\033[1m"
 
-# SUBGRAPH_API_KEY = os.environ.get("SUBGRAPH_API_KEY")
-# SUBGRAPH_QUERY_ID = os.environ.get("SUBGRAPH_QUERY_ID")
-# url = f"https://gateway-arbitrum.network.thegraph.com/api/{SUBGRAPH_API_KEY}/subgraphs/id/{SUBGRAPH_QUERY_ID}"
 url = "https://api.studio.thegraph.com/query/58438/logs-for-hoprd/version/latest"
 
 @click.command()
@@ -30,26 +25,26 @@ def main(minblock: int, folder: Path, startblock: int, endblock: int, blocksfile
         blocks = blocks_io.fromJSON()
     else:
         blocks = blocks_io.fromSubgraphData(folder, minblock, url)
-
+    
     if endblock:
         block_range = range(startblock, endblock+1)
     else:
-        block_range = range(startblock-10, startblock+10)
+        block_range = range(startblock-5, startblock+6)
 
     block_numbers = [block.number for block in blocks]
-    intersection = set(block_numbers).intersection(block_range)
+    intersection = list(set(block_numbers).intersection(block_range))
+    intersection.sort()
 
     if not intersection:
         print(f"No blocks in {block_range} found")
 
-    for blocknumber in intersection:
-        print(blocks[block_numbers.index(blocknumber)])
+    for blocknumber in intersection:         
+        if blocknumber == startblock:
+            print(BOLD, end="")
+
+        print(blocks[block_numbers.index(blocknumber)], end=f"{RESET}\n")
 
 if __name__ == "__main__":
     main()
 
-
-
-#  OK: 29839885
-# NOK: 29839895
-# NOT IN LIST: 29839905
+# block #30548792 with checksum: 0x42ff4ad17e5f49e3e382291c59b38df02e73d0f54cfaadf6e31d4035864f0ed2

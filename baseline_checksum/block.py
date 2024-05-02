@@ -4,9 +4,6 @@ from pathlib import Path
 from .event import Event, EventsIO
 from .library import keccak_256
 
-BOLD = "\033[1m"
-RESET = "\033[0m"
-
 class Block:
     def __init__(self, block_number: int):
         self.number = block_number
@@ -31,8 +28,12 @@ class Block:
     def keccak_256(self):
         return keccak_256(b''.join([event.tx_hash_bytes for event in self.events]))
     
+    def __lt__(self, other):
+        return self.number < other.number
+
+
     def __repr__(self):
-        output = f"checksum @ block {BOLD}{self.number}{RESET}: 0x{self.checksum.hex()} (hash: 0x{self.block_hash})"
+        output = f"checksum @ block {self.number}: 0x{self.checksum.hex()} (hash: 0x{self.block_hash[:6]}...)"
 
         for event in self.events:
             output += f"\n  {event}"
