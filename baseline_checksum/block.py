@@ -1,6 +1,6 @@
-import asyncio
 import json
 from pathlib import Path
+
 from .event import Event, EventsIO
 from .library import keccak_256
 
