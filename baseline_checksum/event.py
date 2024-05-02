@@ -1,3 +1,4 @@
+import asyncio
 from pathlib import Path
 import pickle
 
@@ -35,7 +36,7 @@ class Event:
         return cls(data["id"], int(data["block_number"]), int(data["log_index"]), int(data["tx_index"]), data["evt_name"], data["tx_hash"])
     
     def __eq__(self, other):
-        return self.id == other.id
+        return self.block_number == other.block_number and self.tx_index == other.tx_index and self.log_index == other.log_index
     
     def __lt__(self, other):
         if self.block_number != other.block_number:
@@ -57,45 +58,48 @@ class Event:
     
 
 
+class EventsIO:
+    def __init__(self, folder: Path):
+        self.folder = folder
 
-async def events_from_subgraph(folder: Path, url: str, initial_block: int):
-    provider = EventsProvider(url)
-    data = []
-    temp_data = await provider.get(block_number=str(initial_block))
-
-    with open(folder.joinpath("part_0.pkl"), "wb") as f:
-        pickle.dump(temp_data, f)
-
-    data.extend(temp_data)
-    print(f"Retrieved {len(temp_data)} events (total: {len(data)})")
-
-    idx = 1
-    while len(temp_data) == 6000:
-        print(f"In loop {idx}x")
-        block_number = data[-1]["block_number"]
+    def fromLocalFiles(self):
+        data = []
+        files = list(self.folder.glob("*.pkl"))
+        print(f"Loading data from {len(files)} files in folder `{self.folder}`")
+        for file in files:
+            print(f"\rLoading {file.name}", end="")
+            with open(file, "rb") as f:
+                data.extend(pickle.load(f))
+        print("\r"+" "*100, end="")
+        print("\rLoading done!")
+        return data
 
 
-        print(f"{block_number=}")
-        temp_data = await provider.get(block_number=f"{block_number}")
+    def fromSubgraph(self, url: str, minblock: int):
+        provider = EventsProvider(url)
+        data = []
+        temp_data = asyncio.run(provider.get(block_number=str(minblock)))
 
-        with open(folder.joinpath(f"part_{idx}.pkl"), "wb") as f:
+        with open(self.folder.joinpath("part_0.pkl"), "wb") as f:
             pickle.dump(temp_data, f)
 
         data.extend(temp_data)
         print(f"Retrieved {len(temp_data)} events (total: {len(data)})")
 
-        idx += 1
+        idx = 1
+        while len(temp_data) == 6000:
+            print(f"In loop {idx}x")
+            block_number = data[-1]["block_number"]
 
-    return data
+            print(f"{block_number=}")
+            temp_data = asyncio.run(provider.get(block_number=str(block_number)))
 
-def events_from_local_files(folder: Path):
-    data = []
-    files = list(folder.glob("*.pkl"))
-    print(f"Loading data from {len(files)} files in folder `{folder}`")
-    for file in files:
-        print(f"\rLoading {file.name}", end="")
-        with open(file, "rb") as f:
-            data.extend(pickle.load(f))
-    print("\r"+" "*100, end="")
-    print("\rLoading done!")
-    return data
+            with open(self.folder.joinpath(f"part_{idx}.pkl"), "wb") as f:
+                pickle.dump(temp_data, f)
+
+            data.extend(temp_data)
+            print(f"Retrieved {len(temp_data)} events (total: {len(data)})")
+
+            idx += 1
+
+        return data
