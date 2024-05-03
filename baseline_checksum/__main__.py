@@ -35,6 +35,7 @@ def main(minblock: int, folder: Path, startblock: int, endblock: int, blocksfile
     intersection = list(set(block_numbers).intersection(block_range))
     intersection.sort()
 
+    print(f"Using events from block {block_numbers[0]} to {block_numbers[-1]}")
     if not intersection:
         print(f"No blocks in {block_range} found")
 
@@ -46,5 +47,3 @@ def main(minblock: int, folder: Path, startblock: int, endblock: int, blocksfile
 
 if __name__ == "__main__":
     main()
-
-# block #30548792 with checksum: 0x42ff4ad17e5f49e3e382291c59b38df02e73d0f54cfaadf6e31d4035864f0ed2
