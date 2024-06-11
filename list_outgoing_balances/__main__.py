@@ -2,12 +2,14 @@ import asyncio
 import json
 
 import click
+from dotenv import load_dotenv
 
 from .graphql_providers import SafesProvider
 from .hoprd_api import HoprdAPI
 from .utils import Utils
-from dotenv import load_dotenv
-class TaskManager():
+
+
+class TaskManager:
     def __init__(self, text: str):
         self.text = text
 
@@ -21,14 +23,28 @@ class TaskManager():
         else:
             print("✅")
 
+
 @click.command()
-@click.option("--address", "safe_address", required=True, help="Safe address to get outgoing balances")
-@click.option("--output", "output_file", default=None, required=False, help="Output file (.json) to save the results")
+@click.option(
+    "--address",
+    "safe_address",
+    required=True,
+    help="Safe address to get outgoing balances",
+)
+@click.option(
+    "--output",
+    "output_file",
+    default=None,
+    required=False,
+    help="Output file (.json) to save the results",
+)
 def main(safe_address: str, output_file: str):
     if not load_dotenv():
         print("No .env file found")
 
-    provider = SafesProvider("https://api.studio.thegraph.com/query/40439/hopr-nodes-dufour/version/latest")
+    provider = SafesProvider(
+        "https://api.studio.thegraph.com/query/40439/hopr-nodes-dufour/version/latest"
+    )
     addresses, keys = Utils.nodesAddresses("NODE_ADDRESS", "NODE_KEY")
     api = HoprdAPI(addresses[0], keys[0])
 
@@ -50,7 +66,7 @@ def main(safe_address: str, output_file: str):
     for value in balances.values():
         if value["source_node_address"] not in node_addresses:
             continue
-        
+
         node_balances_dict[value["source_node_address"]] = value["channels_balance"]
 
     if output_file is not None:
@@ -58,8 +74,10 @@ def main(safe_address: str, output_file: str):
             with open(output_file, "w") as f:
                 json.dump(node_balances_dict, f)
 
-    print(f"\tTotal funds in outgoing channels: {sum(node_balances_dict.values())} wxHOPR")
+    print(
+        f"\tTotal funds in outgoing channels: {sum(node_balances_dict.values())} wxHOPR"
+    )
+
 
 if __name__ == "__main__":
     main()
-    
