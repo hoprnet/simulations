@@ -15,14 +15,16 @@ from .utils import (
     sort_waitlist,
 )
 
-load_dotenv()
-
 
 @click.command()
 @click.option("--registry", default="registry.xlsx", help="Registry file (.xlsx)")
 @click.option("--output", default="output.xlsx", help="Output file (.xlsx)")
 @asynchronous
 async def main(registry: str, output: str):
+    if not load_dotenv():
+        print("No .env file found")
+        return
+
     # Loading nft holders from subgraph
     nft_holders = list[str]()
 
