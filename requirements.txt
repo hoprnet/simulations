@@ -22,4 +22,5 @@ ipykernel==6.29.2
 ipywidgets==8.1.2
 dune-client==1.7.3
 pandas==2.2.2
+openpyxl==3.1.2
 sha3==0.2.1
