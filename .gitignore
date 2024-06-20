@@ -1,11 +1,16 @@
+# cache
+__pycache__/
+.pytest_cache/
+
+# envs
+.venv*/
+env*/
 *.env
-.venv
-*.pyc
-*.DS_Store
 *.direnv
+
+# misc
+*.DS_Store
 *.json
 *.csv
-foo_*.*
-foo_*/*
+*.xlsx
 _*/*
-_*
