@@ -1,6 +1,16 @@
 # Simulations
 
-## `apr-simulations`
+## Table of contents
+- [Table of contents](#table-of-contents)
+- [Modules](#modules)
+  - [APR simulations](#apr-simulations)
+  - [Outside safe's balance](#outside-safe-balance)
+  - [Checksum baseline](#checksum-baseline)
+  - [Waitlist update](#waitlist-update)
+- [Scripts](#scripts)
+
+## Modules
+### `apr-simulations`
 First, head into the `apr_simulations` folder:
 ```
 cd apr_simulations
@@ -21,7 +31,7 @@ If you want to an updated version with the current running nodes in the network:
 If not set, a snapshot of data from the past will be used (see snapshot dates in the `snapshot` folder).
 
 
-## `outside-safe-balance`
+### `outside-safe-balance`
 This module allows you to sum up all the funds in outgoing channels for nodes linked to a safe.
 
 The modules requires environment variables:
@@ -46,7 +56,7 @@ Some environment files needs to be set beforehead. You can either set them by yo
 - The `<SAFE_ADDRESS>` parameter is required (either safe or node address)
 - The `<JSON_OUTPUT_PATH>` parameter is optional
 
-## `checksum-baseline`
+### `checksum-baseline`
 This module generate the baseline checksum for every block containing HOPRd logs.
 
 Multiple parameter can be set:
@@ -70,7 +80,7 @@ python -m checksum-baseline --startblock 31000000 --endblock 31000010
 ```
 this will print checksum for blocks `31000000` to `31000010`.
 
-## `waitlist-update`
+### `waitlist-update`
 
 The module generates the list of eligible nodes to join the HOPR network. It requires a `registry` file, which is the results (.xlsx format) from the form that community members fill in when asking to join. It generates an .xlsx file that list the elgibles nodes.
 
