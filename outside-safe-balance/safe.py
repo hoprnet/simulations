@@ -1,4 +1,4 @@
-class SubgraphEntry:
+class Safe:
     def __init__(
         self,
         node_address: str,

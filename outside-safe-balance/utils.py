@@ -1,28 +1,26 @@
+import asyncio
+import functools
 from os import environ
 from typing import Any
 
 from .graphql_providers import ProviderError, SafesProvider
-from .subgraph_entry import SubgraphEntry
+from .safe import Safe
+
+
+def asynchronous(func):
+    """
+    Decorator to run async functions synchronously. Helpful espacially for the main function,
+    when used alongside the click library.
+    """
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return asyncio.run(func(*args, **kwargs))
+
+    return wrapper
 
 
 class Utils:
-    @classmethod
-    def envvarWithPrefix(cls, prefix: str, type=str) -> dict[str, Any]:
-        var_dict = {
-            key: type(v) for key, v in environ.items() if key.startswith(prefix)
-        }
-
-        return dict(sorted(var_dict.items()))
-
-    @classmethod
-    def nodesAddresses(
-        cls, address_prefix: str, keyenv: str
-    ) -> tuple[list[str], list[str]]:
-        addresses = Utils.envvarWithPrefix(address_prefix).values()
-        keys = Utils.envvarWithPrefix(keyenv).values()
-
-        return list(addresses), list(keys)
-
     @classmethod
     def aggregatePeerBalanceInChannels(cls, channels: list) -> dict[str, dict]:
         """
@@ -53,11 +51,11 @@ class Utils:
 
     @classmethod
     async def nodesFromSubgraph(cls, provider: SafesProvider):
-        all_nodes = list[SubgraphEntry]()
+        all_nodes = list[Safe]()
         try:
             for safe in await provider.get():
                 entries = [
-                    SubgraphEntry.fromSubgraphResult(node)
+                    Safe.fromSubgraphResult(node)
                     for node in safe["registeredNodesInNetworkRegistry"]
                 ]
                 all_nodes.extend(entries)
