@@ -99,5 +99,4 @@ python -m waitlist-update --registry <PATH_TO_REGISTRY_FILE> [--output <PATH_TO_
 
 ## Scripts
 
-- `low_stake_safes.sh`: list all safes that have stake lower than 10000wxHOPR (or value from THRESHOLD env var). Stores results to `low_stake_addresses.csv`
 - `safe_probe.sh`: check all nodes from csv input file (specified as CLI's first argument) if they have an associated safe. Format of input file should be two column csv (node address and multi-address), see `scripts/new_node_multiaddr.csv`. Stores results to `no_safes_addresses.csv`
