@@ -32,7 +32,7 @@ If not set, a snapshot of data from the past will be used (see snapshot dates in
 
 
 ### `outside-safe-balance`
-This module allows you to sum up all the funds in outgoing channels for nodes linked to a safe.
+This module allows you to sum up all the funds in outgoing channels for nodes linked to a safe, or for every safe deployed.
 
 The modules requires environment variables:
 - `NODE_ADDRESS`: Full address of a running HOPRd node (format: `https://host:port`)
@@ -40,21 +40,20 @@ The modules requires environment variables:
 - `SUBGRAPH_SAFES_URL`: The URL to the `hopr-nodes-dufour` subgraph (decentralized or decentralized endpoint). This info can be found in subgraph-dedicated Notion page
 
 
-To run the module, you can specify either a node or a safe address. If you specify:
+To run the module, you can specify either a node or a safe address, or nothing. If you specify:
 - a safe address, the module will look for nodes associated with this safe.
 - a node address, the module will first look for the associated safe, before finding all the other nodes associated to this safe. 
+- noting, the module will gather all safes deployed, and compute funds in outgoing channels for all of them.
 
-An extra parameter can be provided, an output file. If provided, a json file listing funds per node will be generated.
+An extra parameter can be provided, an output file. If provided, a json file listing funds per safe and node will be generated.
 
 Either way, the command is the same:
 
 ```sh
-python -m outside-safe-balance --address <ADDRESS> [--output <JSON_OUTPUT_PATH>]
+python -m outside-safe-balance [--address <ADDRESS> --output <JSON_OUTPUT_PATH>]
 ```
 
-Some environment files needs to be set beforehead. You can either set them by your own, or copy/paste/rename the `.env.example` file to `.env` and specify the desired values for the following parameters:
-- The `<SAFE_ADDRESS>` parameter is required (either safe or node address)
-- The `<JSON_OUTPUT_PATH>` parameter is optional
+Some environment files needs to be set beforehead. You can either set them by your own, or copy/paste/rename the `.env.example` file to `.env` and specify the desired values there.
 
 ### `checksum-baseline`
 This module generate the baseline checksum for every block containing HOPRd logs.

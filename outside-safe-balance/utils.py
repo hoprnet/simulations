@@ -64,3 +64,27 @@ class Utils:
             print(f"get_registered_nodes: {err}")
 
         return all_nodes
+
+    @classmethod
+    def safeFunds(
+        cls, safe_address: str, all_nodes: list[Safe], balances: dict[str, dict]
+    ):
+        matching_nodes = list(
+            filter(lambda x: x.safe_address == safe_address, all_nodes)
+        )
+        matching_node_addresses = list(map(lambda x: x.node_address, matching_nodes))
+
+        # Filtering
+        nodes_balances = {}
+        for value in balances.values():
+            if value["source_node_address"] not in matching_node_addresses:
+                continue
+
+            nodes_balances[value["source_node_address"]] = value["channels_balance"]
+
+        return {
+            safe_address: {
+                "total": sum(nodes_balances.values()),
+                "nodes": nodes_balances,
+            }
+        }

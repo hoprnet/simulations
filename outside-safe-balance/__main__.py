@@ -1,20 +1,30 @@
 import json
 import os
+import time
+from enum import Enum
 
 import click
 from dotenv import load_dotenv
 
 from .graphql_providers import SafesProvider
 from .hoprd_api import HoprdAPI
+from .safe import Safe
 from .taskmanager import TaskManager
 from .utils import Utils, asynchronous
+
+
+class AddressType(Enum):
+    INVALID = "Provided address is not a valid safe or node address"
+    SAFE = "Provided address is a safe address"
+    NODE = "Provided address is a node address. Using related safe address"
 
 
 @click.command()
 @click.option(
     "--address",
     "address",
-    required=True,
+    default=None,
+    required=False,
     help="Safe address to get outgoing balances",
 )
 @click.option(
@@ -33,49 +43,57 @@ async def main(address: str, output: str):
     provider = SafesProvider(os.environ["SUBGRAPH_SAFES_URL"])
     api = HoprdAPI(os.environ["NODE_ADDRESS"], os.environ["NODE_KEY"])
 
+    # Get all peers channels balances
+    with TaskManager("Getting outgoing channels for all detected nodes"):
+        balances = Utils.aggregatePeerBalanceInChannels(
+            (await api.all_channels(False)).all
+        )
+
     with TaskManager("Getting all nodes from subgraph"):
         all_nodes = await Utils.nodesFromSubgraph(provider)
 
-    safe_addresses = list(map(lambda x: x.safe_address, all_nodes))
-    node_addresses = list(map(lambda x: x.node_address, all_nodes))
-    safe_address = None
+    safe_addresses = list(set((map(lambda x: x.safe_address, all_nodes))))
+    node_addresses = list(set(map(lambda x: x.node_address, all_nodes)))
+    nodes_balances = {}
 
-    if address in safe_addresses:
-        safe_address = address
-        print("\tProvided address is a safe address")
+    if address := address:
+        safe_address = None
 
-    if address in node_addresses:
-        safe_address = all_nodes[node_addresses.index(address)].safe_address
-        print(f"\tProvided address is a node address. Using related safe address")
+        with TaskManager("Checking provided address"):
+            if address in safe_addresses:
+                safe_address = address
+                addressType = AddressType.SAFE
 
-    if safe_address is None:
-        print("\tProvided address is not a valid safe or node address")
-        return
+            elif address in node_addresses:
+                safe_address = all_nodes[node_addresses.index(address)].safe_address
+                addressType = AddressType.NODE
 
-    matching_nodes = list(filter(lambda x: x.safe_address == safe_address, all_nodes))
-    matching_node_addresses = list(map(lambda x: x.node_address, matching_nodes))
+            else:
+                raise ValueError(AddressType.INVALID.value)
 
-    print(f"\tFound {len(matching_nodes)} nodes linked to safe '{safe_address}'")
+        print(addressType.value)
 
-    # Get all peers channels balances
-    with TaskManager("Getting outgoing channels for all detected nodes"):
-        channels = await api.all_channels(False)
-        balances = Utils.aggregatePeerBalanceInChannels(channels.all)
+        with TaskManager("Getting safe funds"):
+            nodes_balances.update(Utils.safeFunds(safe_address, all_nodes, balances))
 
-    # Filtering
-    node_balances = {}
-    for value in balances.values():
-        if value["source_node_address"] not in matching_node_addresses:
-            continue
-
-        node_balances[value["source_node_address"]] = value["channels_balance"]
+        print(
+            f"\tFound {len(nodes_balances[safe_address])} nodes linked to safe '{safe_address}'"
+        )
+        print(
+            f"\tTotal funds in outgoing channels: {nodes_balances[safe_address]['total']} wxHOPR"
+        )
+    else:
+        with TaskManager(f"Getting funds for {len(safe_addresses)} safes"):
+            for safe_address in safe_addresses:
+                nodes_balances.update(
+                    Utils.safeFunds(safe_address, all_nodes, balances)
+                )
 
     if output := output:
+        nodes_balances["timestamp"] = time.time()
         with TaskManager(f"Dumping nodes total outgoing funds to {output}"):
             with open(output, "w") as f:
-                json.dump(node_balances, f)
-
-    print(f"\tTotal funds in outgoing channels: {sum(node_balances.values())} wxHOPR")
+                json.dump(nodes_balances, f)
 
 
 if __name__ == "__main__":
