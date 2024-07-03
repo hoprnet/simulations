@@ -33,25 +33,26 @@ url = "https://api.studio.thegraph.com/query/58438/logs-for-hoprd/version/latest
 )
 @click.option(
     "--folder",
-    default=Path("./_temp_results"),
+    default=Path("./.temp_results"),
     type=click.Path(exists=False, file_okay=False, dir_okay=True, path_type=Path),
     help="The folder to store the data in",
 )
 def main(minblock: int, folder: Path, startblock: int, endblock: int, blocksfile: Path):
-    blocks_io = BlocksIO(blocksfile)
+    blocks_io = BlocksIO(blocksfile, folder)
 
     if blocksfile and blocksfile.exists():
-        blocks = blocks_io.fromJSON()
-    else:
-        blocks = blocks_io.fromSubgraphData(folder, minblock, url)
+        blocks_io.fromJSON()
+        minblock = blocks_io.blocks[-1].number
 
-    # block_range = range(start_block - 5 * (endblock != None))
+    blocks_io.fromSubgraphData(minblock, url)
+    blocks_io.toJSON()
+
     if endblock:
         block_range = range(startblock, endblock + 1)
     else:
         block_range = range(startblock - 5, startblock + 6)
 
-    block_numbers = [block.number for block in blocks]
+    block_numbers = [block.number for block in blocks_io.blocks]
     intersection = list(set(block_numbers).intersection(block_range))
     intersection.sort()
 
@@ -63,7 +64,7 @@ def main(minblock: int, folder: Path, startblock: int, endblock: int, blocksfile
         if blocknumber == startblock:
             print(BOLD, end="")
 
-        print(blocks[block_numbers.index(blocknumber)], end=f"{RESET}\n")
+        print(blocks_io.blocks[block_numbers.index(blocknumber)], end=f"{RESET}\n")
 
 
 if __name__ == "__main__":
