@@ -82,9 +82,14 @@ class Utils:
 
             nodes_balances[value["source_node_address"]] = value["channels_balance"]
 
+        # Safe balance
+        safe_balance = matching_nodes[0].wxHoprBalance if len(matching_nodes) > 0 else 0
+        channels_balance = sum(nodes_balances.values())
+
         return {
             safe_address: {
-                "total": sum(nodes_balances.values()),
-                "nodes": nodes_balances,
+                "total_balance": channels_balance + safe_balance,
+                "safe_balance": safe_balance,
+                "nodes_channels_balances": nodes_balances,
             }
         }
