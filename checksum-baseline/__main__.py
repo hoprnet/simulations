@@ -3,6 +3,7 @@ from pathlib import Path
 import click
 
 from .block import BlocksIO
+from .library import asynchronous
 
 RESET = "\033[0m"
 BOLD = "\033[1m"

@@ -52,7 +52,7 @@ class GraphQLProvider:
 
         return response and key in response
 
-    async def _get(self, key: str, **kwargs) -> dict:
+    async def _get(self, keys: list[str], **kwargs) -> dict:
         """
         Gets the data from a subgraph query.
         :param key: The key to look for in the response.
@@ -62,6 +62,9 @@ class GraphQLProvider:
         page_size = 1000
         skip = 0
         data = []
+
+        if isinstance(keys, str):
+            keys = [keys]
 
         while True:
             vars = {"first": page_size, "skip": skip}
@@ -73,7 +76,13 @@ class GraphQLProvider:
                 print(f"Error: {e}")
                 break
 
-            content = response.get(key, [])
+            content = response
+            for key in keys:
+                content = content.get(key, [])
+
+            if not isinstance(content, list):
+                content = [content]
+
             data.extend(content)
 
             skip += page_size
@@ -101,7 +110,6 @@ class GraphQLProvider:
                 "No key provided for the query, and no default key set. Skipping query..."
             )
             return []
-
         return await self._get(key, **kwargs)
 
     async def test(self, **kwargs):
@@ -123,8 +131,19 @@ class EventsProvider(GraphQLProvider):
     def __init__(self, url: str):
         super().__init__(url)
         self._default_key = "events"
-        self._sku_query = self._load_query("events.graphql")
+        self._sku_query = self._load_query("subgraph_queries/events.graphql")
 
     @property
     def print_prefix(self) -> str:
-        return "safe-provider"
+        return "events-provider"
+
+
+class LastBlockProvider(GraphQLProvider):
+    def __init__(self, url: str):
+        super().__init__(url)
+        self._default_key = ["_meta", "block", "number"]
+        self._sku_query = self._load_query("subgraph_queries/last_block.graphql")
+
+    @property
+    def print_prefix(self) -> str:
+        return "last-block-provider"

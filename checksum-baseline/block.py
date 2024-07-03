@@ -50,15 +50,7 @@ class BlocksIO:
         self.blocks: list[Block] = []
         signal.signal(signal.SIGINT, self.interruption_handler)
 
-    def fromSubgraphData(self, minblock: int, url: str):
-        # import data, either from local files or from the subgraph API
-        events_io = EventsIO(self.temp_folder)
-        if self.temp_folder.exists():
-            data = events_io.fromLocalFiles()
-        else:
-            self.temp_folder.mkdir()
-            data = events_io.fromSubgraph(url, minblock)
-
+    def _parseData(self, data: dict):
         # remove duplicates and sort by block_number, tx_index, log_index
         events = list(set([Event.fromDict(d) for d in data]))
         events.sort()
@@ -76,6 +68,17 @@ class BlocksIO:
             cat_str = b"".join([checksums[-1], block.keccak_256()])
             block.checksum = keccak_256(cat_str)
             checksums.append(keccak_256(cat_str))
+
+    def fromSubgraphData(self, minblock: int, url: str):
+        # import data, either from local files or from the subgraph API
+        events_io = EventsIO(self.temp_folder)
+        if self.temp_folder.exists():
+            data = events_io.fromLocalFiles()
+        else:
+            self.temp_folder.mkdir()
+            data = events_io.fromSubgraph(url, minblock)
+
+        self._parseData(data)
 
     def fromJSON(self):
         print(f"Loading blocks from {self.file}")
@@ -111,5 +114,7 @@ class BlocksIO:
         self.temp_folder.rmdir()
 
     def interruption_handler(self, sig, frame):
+        print("")
+        self._parseData(EventsIO(self.temp_folder).fromLocalFiles())
         self.toJSON()
         sys.exit(0)
