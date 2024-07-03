@@ -15,9 +15,9 @@ class Safe:
     def fromSubgraphResult(cls, node: dict):
         return cls(
             node["node"]["id"],
-            node["safe"]["balance"]["wxHoprBalance"],
+            float(node["safe"]["balance"]["wxHoprBalance"]),
             node["safe"]["id"],
-            node["safe"]["allowance"]["wxHoprAllowance"],
+            float(node["safe"]["allowance"]["wxHoprAllowance"]),
         )
 
     def has_address(self, address: str):

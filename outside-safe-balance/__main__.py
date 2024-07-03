@@ -52,11 +52,12 @@ async def main(address: str, output: str):
     with TaskManager("Getting all nodes from subgraph"):
         all_nodes = await Utils.nodesFromSubgraph(provider)
 
-    safe_addresses = list(set((map(lambda x: x.safe_address, all_nodes))))
-    node_addresses = list(set(map(lambda x: x.node_address, all_nodes)))
-    nodes_balances = {}
+    safe_addresses = list(set((map(lambda x: x.safe_address.lower(), all_nodes))))
+    node_addresses = list(set(map(lambda x: x.node_address.lower(), all_nodes)))
+    nodes_balances = {"timestamp": time.time(), "safes": {}}
 
     if address := address:
+        address = address.lower()
         safe_address = None
 
         with TaskManager("Checking provided address"):
@@ -80,17 +81,16 @@ async def main(address: str, output: str):
             f"\tFound {len(nodes_balances[safe_address])} nodes linked to safe '{safe_address}'"
         )
         print(
-            f"\tTotal funds in outgoing channels: {nodes_balances[safe_address]['total']} wxHOPR"
+            f"\tTotal funds in outgoing channels: {nodes_balances[safe_address]['total_balance']} wxHOPR"
         )
     else:
         with TaskManager(f"Getting funds for {len(safe_addresses)} safes"):
             for safe_address in safe_addresses:
-                nodes_balances.update(
+                nodes_balances["safes"].update(
                     Utils.safeFunds(safe_address, all_nodes, balances)
                 )
 
     if output := output:
-        nodes_balances["timestamp"] = time.time()
         with TaskManager(f"Dumping nodes total outgoing funds to {output}"):
             with open(output, "w") as f:
                 json.dump(nodes_balances, f)
