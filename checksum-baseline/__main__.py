@@ -38,15 +38,27 @@ url = "https://api.studio.thegraph.com/query/58438/logs-for-hoprd/version/latest
     type=click.Path(exists=False, file_okay=False, dir_okay=True, path_type=Path),
     help="The folder to store the data in",
 )
-def main(minblock: int, folder: Path, startblock: int, endblock: int, blocksfile: Path):
+@click.option("--no-update", "-u", is_flag=True, help="Do not update the blocks file")
+@asynchronous
+async def main(
+    minblock: int,
+    folder: Path,
+    startblock: int,
+    endblock: int,
+    blocksfile: Path,
+    no_update: bool,
+):
     blocks_io = BlocksIO(blocksfile, folder)
 
     if blocksfile and blocksfile.exists():
         blocks_io.fromJSON()
         minblock = blocks_io.blocks[-1].number
 
-    blocks_io.fromSubgraphData(minblock, url)
-    blocks_io.toJSON()
+    if not no_update:
+        await blocks_io.fromSubgraphData(minblock, url)
+        blocks_io.toJSON()
+    else:
+        print("Skipping blocks update with onchain data")
 
     if endblock:
         block_range = range(startblock, endblock + 1)

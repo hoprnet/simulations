@@ -69,14 +69,14 @@ class BlocksIO:
             block.checksum = keccak_256(cat_str)
             checksums.append(keccak_256(cat_str))
 
-    def fromSubgraphData(self, minblock: int, url: str):
+    async def fromSubgraphData(self, minblock: int, url: str):
         # import data, either from local files or from the subgraph API
         events_io = EventsIO(self.temp_folder)
         if self.temp_folder.exists():
             data = events_io.fromLocalFiles()
         else:
             self.temp_folder.mkdir()
-            data = events_io.fromSubgraph(url, minblock)
+            data = await events_io.fromSubgraph(url, minblock)
 
         self._parseData(data)
 

@@ -64,6 +64,7 @@ Multiple parameter can be set:
 - `--endblock` (optional): The upper-bound block you want the checksum from.
 - `--blocksfile` (optional): A .json file to store the gathered blocks, events, and checksums in. Default is `blocks.json`. If provided and the file already exist, the module will try to load data from this file to save some execution and subgraph query time.
 - `--folder` (optional): A temp folder to store temporary subgraph query data. Once subgraph queries are done, content will be converted into a single file store at `blocksfile`. Default is `./_temp_results`.
+- `--no-update / -u` (optional): A flag that avoid updating local copy of blocks with onchain data.
 
 Workflow is as follow: is `blocksfile` file exist, will load data from it. Else, if data is available in `folder`, will load data from there and generate `blocksfile`. Else, logs will be gathered from subgraph, saved temporarly to `folder` and then converted to `blocksfile`.
 
@@ -78,6 +79,11 @@ this will print checksum for block `31000000` and some blocks around it.
 python -m checksum-baseline --startblock 31000000 --endblock 31000010
 ```
 this will print checksum for blocks `31000000` to `31000010`.
+
+```sh
+python -m checksum-baseline --startblock 31000000 --endblock 31000010 -u
+```
+this will print checksum for blocks `31000000` to `31000010`, without getting new blocks from onchain.
 
 ### `waitlist-update`
 

@@ -1,4 +1,3 @@
-import asyncio
 import pickle
 from pathlib import Path
 
@@ -96,16 +95,22 @@ class EventsIO:
         print("\rLoading done!")
         return data
 
-    def fromSubgraph(self, url: str, minblock: int):
-        print("Loading missing data from subgraph")
-        last_block = asyncio.run(LastBlockProvider(url).get())[0]
+    async def fromSubgraph(self, url: str, minblock: int):
+        last_block = (await LastBlockProvider(url).get())[0]
+
+        if minblock >= last_block:
+            print("No missing data to load from onchain")
+            return []
+        else:
+            print(f"Loading data from block {minblock} to {last_block}")
+
         provider = EventsProvider(url)
         data = []
-
         idx = 0
+
         while idx == 0 or len(temp_data) == 6000:
             block_number = int(data[-1]["block_number"]) if len(data) > 0 else minblock
-            temp_data = asyncio.run(provider.get(block_number=str(block_number)))
+            temp_data = await provider.get(block_number=str(block_number))
 
             with open(self.folder.joinpath(f"part_{idx}.pkl"), "wb") as f:
                 pickle.dump(temp_data, f)
