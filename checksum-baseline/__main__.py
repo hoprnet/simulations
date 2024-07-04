@@ -16,12 +16,14 @@ url = "https://api.studio.thegraph.com/query/58438/logs-for-hoprd/version/latest
     "--minblock", default=29706814, type=int, help="The block number to start from"
 )
 @click.option(
-    "--startblock",
+    "--block",
+    "startblock",
     type=int,
     help="A specific block to calculate the checksum for (or from)",
 )
 @click.option(
-    "--endblock",
+    "--to",
+    "endblock",
     default=None,
     type=int,
     help="A specific block to calculate the checksum to (or until)",
@@ -39,6 +41,7 @@ url = "https://api.studio.thegraph.com/query/58438/logs-for-hoprd/version/latest
     help="The folder to store the data in",
 )
 @click.option("--no-update", "-u", is_flag=True, help="Do not update the blocks file")
+@click.option("--fill", "-f", is_flag=True, help="Fill the missing blocks with empty blocks")
 @asynchronous
 async def main(
     minblock: int,
@@ -47,6 +50,7 @@ async def main(
     endblock: int,
     blocksfile: Path,
     no_update: bool,
+    fill: bool
 ):
     blocks_io = BlocksIO(blocksfile, folder)
 
@@ -59,6 +63,11 @@ async def main(
         blocks_io.toJSON()
     else:
         print("Skipping blocks update with onchain data")
+
+    if fill:
+        blocks_io.fillMissingBlocks()
+
+    block_numbers = [block.number for block in blocks_io.blocks]
 
     if endblock:
         block_range = range(startblock, endblock + 1)

@@ -35,7 +35,13 @@ class Block:
         return self.number < other.number
 
     def __repr__(self):
-        output = f"checksum @ block {self.number}: 0x{self.checksum.hex()} (hash: 0x{self.block_hash[:6]}...)"
+
+        output = f"checksum @ block {self.number}: 0x{self.checksum.hex()}"
+
+        if len(self.events) > 0:
+            output += f"(hash: 0x{self.block_hash[:6]}...)"
+        else:
+            output += "(no events)"
 
         for event in self.events:
             output += f"\n  {event}"
@@ -59,7 +65,6 @@ class BlocksIO:
         for event in events:
             if len(self.blocks) == 0 or self.blocks[-1].number != event.block_number:
                 self.blocks.append(Block(event.block_number))
-
             self.blocks[-1].add_event(event)
 
         # calculate checksums
@@ -67,7 +72,7 @@ class BlocksIO:
         for block in self.blocks:
             cat_str = b"".join([checksums[-1], block.keccak_256()])
             block.checksum = keccak_256(cat_str)
-            checksums.append(keccak_256(cat_str))
+            checksums.append(block.checksum)
 
     async def fromSubgraphData(self, minblock: int, url: str):
         # import data, either from local files or from the subgraph API
@@ -79,6 +84,24 @@ class BlocksIO:
             data = await events_io.fromSubgraph(url, minblock)
 
         self._parseData(data)
+
+    def fillMissingBlocks(self):
+        temp_block_list: list[Block] = []
+
+        for block in self.blocks:
+            last_block_number = temp_block_list[-1].number if temp_block_list else None
+            if last_block_number and (block.number - last_block_number) > 1:
+                missing_blocks = [
+                    Block(item) for item in range(last_block_number + 1, block.number)
+                ]
+                for item in missing_blocks:
+                    item.checksum = temp_block_list[-1].checksum
+
+                temp_block_list.extend(missing_blocks)
+
+            temp_block_list.append(block)
+
+        self.blocks = temp_block_list
 
     def fromJSON(self):
         print(f"Loading blocks from {self.file}")
