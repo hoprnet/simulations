@@ -41,7 +41,9 @@ url = "https://api.studio.thegraph.com/query/58438/logs-for-hoprd/version/latest
     help="The folder to store the data in",
 )
 @click.option("--no-update", "-u", is_flag=True, help="Do not update the blocks file")
-@click.option("--fill", "-f", is_flag=True, help="Fill the missing blocks with empty blocks")
+@click.option(
+    "--fill", "-f", is_flag=True, help="Fill the missing blocks with empty blocks"
+)
 @asynchronous
 async def main(
     minblock: int,
@@ -50,7 +52,7 @@ async def main(
     endblock: int,
     blocksfile: Path,
     no_update: bool,
-    fill: bool
+    fill: bool,
 ):
     blocks_io = BlocksIO(blocksfile, folder)
 
@@ -67,14 +69,13 @@ async def main(
     if fill:
         blocks_io.fillMissingBlocks()
 
-    block_numbers = [block.number for block in blocks_io.blocks]
+    block_numbers = BlocksIO.blockNumbers(blocks_io.blocks)
 
     if endblock:
         block_range = range(startblock, endblock + 1)
     else:
         block_range = range(startblock - 5, startblock + 6)
 
-    block_numbers = [block.number for block in blocks_io.blocks]
     intersection = list(set(block_numbers).intersection(block_range))
     intersection.sort()
 

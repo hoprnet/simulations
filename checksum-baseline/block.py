@@ -39,9 +39,9 @@ class Block:
         output = f"checksum @ block {self.number}: 0x{self.checksum.hex()}"
 
         if len(self.events) > 0:
-            output += f"(hash: 0x{self.block_hash[:6]}...)"
+            output += f" (hash: 0x{self.block_hash[:6]}...)"
         else:
-            output += "(no events)"
+            output += " (no events)"
 
         for event in self.events:
             output += f"\n  {event}"
@@ -141,3 +141,7 @@ class BlocksIO:
         self._parseData(EventsIO(self.temp_folder).fromLocalFiles())
         self.toJSON()
         sys.exit(0)
+
+    @classmethod
+    def blockNumbers(cls, blocks: list[Block]):
+        return [block.number for block in blocks]
