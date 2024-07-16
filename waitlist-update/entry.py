@@ -16,25 +16,4 @@ class Entry:
 
     @classmethod
     def fromPandaSerie(cls, entry: Series):
-        items: dict[str, str] = cls._import_keys_and_values()
-
-        return [
-            cls(**{key: entry[value] for key, value in items.items() if value in entry})
-        ]
-
-    @classmethod
-    def _import_keys_and_values(self) -> dict[str, str]:
         raise NotImplementedError
-
-    def __str__(self):
-        attributes = [
-            attr
-            for attr in dir(self)
-            if not attr.startswith("_") and not callable(getattr(self, attr))
-        ]
-
-        return (
-            f"{self.__class__.__name__}("
-            + ", ".join([f"{attr}='{getattr(self, attr)}'" for attr in attributes])
-            + ")"
-        )

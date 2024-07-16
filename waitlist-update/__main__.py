@@ -1,4 +1,6 @@
+import json
 from os import environ
+from pathlib import Path
 
 import click
 from dotenv import load_dotenv
@@ -7,20 +9,14 @@ from .candidate import Candidate
 from .graphql_providers import NFTProvider, SafesProvider
 from .registration import Registration
 from .safe import Safe
-from .utils import (
-    asynchronous,
-    print_loaded_data,
-    remove_duplicates,
-    separator_text,
-    sort_waitlist,
-)
+from .utils import Decorator, Display, remove_duplicates, sort_waitlist
 
 
 @click.command()
 @click.option("--registry", default="registry.xlsx", help="Registry file (.xlsx)")
-@click.option("--output", default="output.xlsx", help="Output file (.xlsx)")
-@asynchronous
-async def main(registry: str, output: str):
+@click.option("--output", type=Path, default="output.json", help="Output file (.json)")
+@Decorator.asynchronous
+async def main(registry: str, output: Path):
     if not load_dotenv():
         print("No .env file found")
         return
@@ -49,90 +45,76 @@ async def main(registry: str, output: str):
     registered_nodes = remove_duplicates(
         Registration.fromXLSX(registry), ["safe_address", "node_address"], True
     )
-    print_loaded_data("Registered nodes", len(registered_nodes))
+    Display.loadedData("Registered nodes", len(registered_nodes))
 
     waitlist_candidates = [
         n for n in registered_nodes if n.node_address not in running_nodes
     ]
-    print_loaded_data("Waitlist candidates", len(waitlist_candidates))
+    Display.loadedData("Waitlist candidates", len(waitlist_candidates))
 
     # Filtering candidates by stake and NFT ownership
-    waitlist = []
-    safe_not_deployed_candidates = []
-    low_balance_candidates = []
-    low_balance_nft_candidates = []
-    invalid_node_address_candidates = []
+    cases = [
+        "Approved",
+        "Safe not deployed",
+        "Empty node address",
+        "Invalid node address",
+        "Low balance (w/o NFT)",
+        "Low balance (with NFT)",
+    ]
+    candidates: list[dict] = [{"list": [], "case": case} for case in cases]
 
-    for c in waitlist_candidates:
-        if c.safe_address not in deployed_safes_addresses:
-            safe_not_deployed_candidates.append(c)
+    for wc in waitlist_candidates:
+        if wc.safe_address not in deployed_safes_addresses:
+            candidates[1]["list"].append(wc)
             continue
 
-        index = deployed_safes_addresses.index(c.safe_address)
-        deployed_safe = deployed_safes[index]
+        deployed_safe = deployed_safes[deployed_safes_addresses.index(wc.safe_address)]
+
         candidate = Candidate(
             deployed_safe.address,
-            c.node_address,
-            deployed_safe.wxHoprBalance,
-            c.safe_address in nft_holders,
+            wc.node_address,
+            deployed_safe.balance,
+            wc.safe_address in nft_holders,
         )
 
-        if candidate.wxHOPR_balance < 10_000:
-            low_balance_candidates.append(candidate)
-            continue
-
-        if candidate.wxHOPR_balance < 30_000 and not candidate.nr_nft:
-            low_balance_nft_candidates.append(candidate)
+        if not candidate.node_address:
+            candidates[2]["list"].append(candidate)
             continue
 
         if not candidate.node_address.startswith("0x"):
-            invalid_node_address_candidates.append(candidate)
+            candidates[3]["list"].append(candidate)
             continue
 
-        waitlist.append(candidate)
+        if candidate.balance < 10_000:
+            candidates[4]["list"].append(candidate)
+            continue
 
-    nft_holders = [e for e in waitlist if e.nr_nft]
-    non_nft_holders = [e for e in waitlist if not e.nr_nft]
+        if candidate.balance < 30_000 and not candidate.nr_nft:
+            candidates[5]["list"].append(candidate)
+            continue
+
+        candidates[0]["list"].append(candidate)
+
+    nft_holders = [e for e in candidates[0]["list"] if e.nr_nft]
+    non_nft_holders = [e for e in candidates[0]["list"] if not e.nr_nft]
     ordered_waitlist = sort_waitlist(nft_holders, non_nft_holders, (20, 10))
 
     # Printing candidates that were filtered out
-    print(separator_text("Candidates filtered out", "-"))
-
-    if data := safe_not_deployed_candidates:
-        print("Safe not deployed:")
-        for c in data:
-            print(f"\t{c.safe_address}")
-
-    if data := low_balance_candidates:
-        print("Low balance safes -- format <safe> (<balance>):")
-        for c in low_balance_candidates:
-            print(f"\t{c.safe_address} ({c.wxHOPR_balance} wxHOPR)")
-
-    if data := low_balance_nft_candidates:
-        print("Low balance with NFT -- format <safe> (<balance>):")
-        for c in data:
-            print(f"\t{c.safe_address} ({c.wxHOPR_balance} wxHOPR)")
-
-    if data := invalid_node_address_candidates:
-        print("Invalid node address -- format <safe> (<node address>):")
-        for c in data:
-            print(f"\t{c.safe_address} ({c.node_address})")
+    Display.separator("Candidates filtered out")
+    Display.excludedCandidates(candidates[1:])
 
     # Sorting users according to COMM team rules
-    print(separator_text("Final results", "-"))
-    print(f"{'NFT holders in waitlist':30s}\t{len(nft_holders)}")
-    print(f"{'non-NFT holders in waitlist':30s}\t{len(non_nft_holders)}")
-    print(f"{'Eligible candidates':30s}\t{len(ordered_waitlist)}")
+    Display.separator("Final results")
+    if not ordered_waitlist:
+        print("No candidates to be approved")
+        return
+
+    Display.candidates("Approved candidates", ordered_waitlist)
 
     # Exporting waitlist
-    Candidate.toDataFrame(ordered_waitlist).to_excel(output, index=False)
+    with open(output.with_suffix(".json"), "w") as f:
+        json.dump(Candidate.toContractData(ordered_waitlist), f, indent=4)
     print(f"\nWaitlist exported to '{output}'")
-
-    # Sanity check
-    assert len(ordered_waitlist) == len(nft_holders) + len(non_nft_holders)
-    assert len(ordered_waitlist) == (
-        len(remove_duplicates(ordered_waitlist, ["safe_address", "node_address"]))
-    ), "Some entries are duplicated in the generated waitlist"
 
 
 if __name__ == "__main__":

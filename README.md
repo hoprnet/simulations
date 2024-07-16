@@ -107,7 +107,7 @@ To run the module, use the following command:
 python -m waitlist-update --registry <PATH_TO_REGISTRY_FILE> [--output <PATH_TO_OUTPUT_FILE>]
 ```
 - `--registry` (optional): Path to the registry file (.xslx). Default is `registy.xlsx`
-- `--output`(optional): Path to the output file (.xslx). Default is `output.xslx`
+- `--output`(optional): Path to the output file (.json). Default is `output.json`
 
 ## Scripts
 

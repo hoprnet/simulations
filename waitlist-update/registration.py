@@ -36,15 +36,6 @@ class Registration(Entry):
     def node_address(self, value: str):
         self._node_address = value.strip().lower()
 
-    def __repr__(self):
-        return (
-            "RegistrationEntry("
-            + f"{self.participant}, "
-            + f"{self.safe_address}, "
-            + f"{self.node_address}"
-            + ")"
-        )
-
     @classmethod
     def fromPandaSerie(cls, entry: Series):
         node_addresses = (
@@ -58,8 +49,6 @@ class Registration(Entry):
         instances = []
         for address in node_addresses:
             address = address.strip().lower()
-            if address == "":
-                continue
 
             instance = cls(
                 time=entry["Time"],
@@ -72,14 +61,3 @@ class Registration(Entry):
 
             instances.append(instance)
         return instances
-
-    @classmethod
-    def _import_keys_and_values(self) -> dict[str, str]:
-        return {
-            "time": "Time",
-            "participant": "Participant",
-            "safe_address": "What is your HOPR safe address?",
-            "node_address": "What is your Node address",
-            "nr_nft": "Do you already have the Network Registry NFT?",
-            "telegram": "What is your Telegram handle?",
-        }

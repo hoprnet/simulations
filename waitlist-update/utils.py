@@ -3,17 +3,57 @@ import functools
 import os
 
 
-def asynchronous(func):
-    """
-    Decorator to run async functions synchronously. Helpful espacially for the main function,
-    when used alongside the click library.
-    """
+class Decorator:
+    @classmethod
+    def asynchronous(cls, func):
+        """
+        Decorator to run async functions synchronously. Helpful espacially for the main function,
+        when used alongside the click library.
+        """
 
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        return asyncio.run(func(*args, **kwargs))
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            return asyncio.run(func(*args, **kwargs))
 
-    return wrapper
+        return wrapper
+
+
+class Display:
+    @classmethod
+    def separator(cls, text: str, fill: str = "-", width: int = None):
+        text_len = len(text) + 2
+
+        if not width:
+            width = os.get_terminal_size().columns
+
+        if text_len >= width:
+            return text
+
+        left = (width - text_len) // 2
+        right = (width - text_len) - left
+
+        print("\n" + fill * left + " " + text + " " + fill * right)
+
+    @classmethod
+    def candidates(cls, text: str, data: list):
+        if not data:
+            return
+
+        print(f"{text}:")
+        for c in data:
+            string = f"\t{c.safe_address} / {c.node_address}"
+            if hasattr(c, "balance"):
+                string += f" ({round(c.balance, 5)} wxHOPR)"
+            print(string)
+
+    @classmethod
+    def excludedCandidates(cls, exclusion_list: list[dict]):
+        for v in exclusion_list:
+            cls.candidates(v["case"], v["list"])
+
+    @classmethod
+    def loadedData(cls, type: str, count: int):
+        print(f"\033[1m{type:20s}\t// Loaded {count} entries\033[0m")
 
 
 def remove_duplicates(data: list, keys: list[str], keep_last: bool = False) -> list:
@@ -44,22 +84,3 @@ def sort_waitlist(nft_holders: list, non_holders: list, chunk_sizes: tuple):
             stake_index += stake_chunk_size
 
     return ordered_waitlist
-
-
-def print_loaded_data(cls: str, count: int):
-    print(f"\033[1m{cls:20s}\t// Loaded {count} entries\033[0m")
-
-
-def separator_text(text: str, fill: str, width: int = None):
-    if not width:
-        width = os.get_terminal_size().columns
-
-    text_len = len(text) + 2
-    if text_len >= width:
-        return text
-
-    total_padding = width - text_len
-    left = total_padding // 2
-    right = total_padding - left
-
-    return "\n" + fill * left + " " + text + " " + fill * right

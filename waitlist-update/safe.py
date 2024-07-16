@@ -1,13 +1,7 @@
 class Safe:
-
-    def __init__(
-        self,
-        address: str,
-        wxHoprBalance: int,
-        nodes: list[str],
-    ):
+    def __init__(self, address: str, balance: int, nodes: list[str]):
         self.nodes = nodes
-        self.wxHoprBalance = wxHoprBalance
+        self.balance = balance
         self.address = address
 
     def has_address(self, address: str):
@@ -16,16 +10,6 @@ class Safe:
     def __eq__(self, other):
         return (
             self.nodes == other.nodes
-            and self.wxHoprBalance == other.wxHoprBalance
+            and self.balance == other.balance
             and self.address == other.address
         )
-
-    def __str__(self):
-        return (
-            f"Safe(nodes={self.nodes}, "
-            + f"wxHoprBalance={self.wxHoprBalance}, "
-            + f"address={self.address}), "
-        )
-
-    def __repr__(self):
-        return str(self)

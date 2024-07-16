@@ -6,7 +6,7 @@ from gql.transport.aiohttp import AIOHTTPTransport
 from gql.transport.exceptions import TransportQueryError
 from graphql.language.ast import DocumentNode
 
-from .utils import print_loaded_data
+from .utils import Display
 
 
 class ProviderError(Exception):
@@ -89,7 +89,7 @@ class GraphQLProvider:
             print(f"get_nfts_holders: {err}")
             return []
         else:
-            print_loaded_data(cls.__name__, len(data))
+            Display.loadedData(cls.__name__, len(data))
             return data
 
     #### DEFAULT PUBLIC METHODS ####
@@ -102,14 +102,12 @@ class GraphQLProvider:
         """
 
         if key is None and self._default_key is not None:
-            key = self._default_key
+            return await self._get(self._default_key, **kwargs)
         else:
             self.warning(
                 "No key provided for the query, and no default key set. Skipping query..."
             )
             return []
-
-        return await self._get(key, **kwargs)
 
     async def test(self, **kwargs):
         """

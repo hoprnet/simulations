@@ -1,5 +1,3 @@
-from pandas import DataFrame, Series
-
 from .entry import Entry
 
 
@@ -8,12 +6,12 @@ class Candidate(Entry):
         self,
         safe_address: str,
         node_address: str,
-        wxHOPR_balance: float,
+        balance: float,
         nr_nft: bool,
     ):
         self.safe_address = safe_address
         self.node_address = node_address
-        self.wxHOPR_balance = wxHOPR_balance
+        self.balance = balance
         self.nr_nft = nr_nft
 
     @property
@@ -32,31 +30,18 @@ class Candidate(Entry):
     def node_address(self, value: str):
         self._node_address = value.strip().lower()
 
-    def _toPandaSerie(self):
-        return Series(
-            {
-                value: getattr(self, key)
-                for key, value in self._import_keys_and_values().items()
-            }
-        )
-
-    def __repr__(self):
-        return (
-            "Candidate("
-            + f"{self.safe_address}, "
-            + f"{self.wxHOPR_balance}, "
-            + f"{self.nr_nft})"
-        )
-
     @classmethod
-    def toDataFrame(cls, entries: list["Candidate"]):
-        return DataFrame([entry._toPandaSerie() for entry in entries])
+    def toContractData(cls, entries: list["Candidate"]):
+        safe_addresses = [entry.safe_address for entry in entries]
+        node_addresses = [entry.node_address for entry in entries]
 
-    @classmethod
-    def _import_keys_and_values(self) -> dict[str, str]:
         return {
-            "safe_address": "safe_address",
-            "node_address": "node_address",
-            "wxHOPR_balance": "wxHOPR_balance",
-            "nr_nft": "nr_nft",
+            "managerRegister": {
+                "stakingAccounts": safe_addresses,
+                "nodeAddresses": node_addresses,
+            },
+            "managerForceSync": {
+                "stakingAccounts": node_addresses,
+                "eligibilities": [True] * len(node_addresses),
+            },
         }
