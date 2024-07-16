@@ -1,15 +1,13 @@
 query ($first: Int!, $skip: Int!) { 
-    safes(first: $first, skip: $skip, where: {registeredNodesInNetworkRegistry_: {node_not: ""}}) {
+    safes(first: $first, skip: $skip) {
+        id
+        balance {
+          wxHoprBalance
+        }
         registeredNodesInNetworkRegistry { 
             node { 
                 id 
             } 
-            safe {
-                id
-                balance { 
-                    wxHoprBalance 
-                } 
-            }
         }
     }
 }

@@ -35,10 +35,14 @@ async def main(registry: str, output: str):
     # Loading deployed safes from subgraph
     deployed_safes = list[Safe]()
     for entry in await SafesProvider.safe_get(environ.get("SUBGRAPH_SAFES_URL")):
-        entries = [Safe.fromSubgraph(entry.get("registeredNodesInNetworkRegistry", {}))]
-        deployed_safes.extend(entries)
+        safe_address = entry.get("id", {})
+        wxHOPR_balance = float(entry.get("balance", {}).get("wxHoprBalance", "0"))
+        nodes = entry.get("registeredNodesInNetworkRegistry", {})
 
-    deployed_safes_addresses = [s.safe_address for s in deployed_safes]
+        entry = Safe(safe_address, wxHOPR_balance, [n["node"]["id"] for n in nodes])
+        deployed_safes.append(entry)
+
+    deployed_safes_addresses = [s.address for s in deployed_safes]
     running_nodes = sum([s.nodes for s in deployed_safes], [])
 
     # Loading registration data (from Andrius)
@@ -67,7 +71,7 @@ async def main(registry: str, output: str):
         index = deployed_safes_addresses.index(c.safe_address)
         deployed_safe = deployed_safes[index]
         candidate = Candidate(
-            deployed_safe.safe_address,
+            deployed_safe.address,
             deployed_safe.wxHoprBalance,
             c.safe_address in nft_holders,
             None,
@@ -95,21 +99,25 @@ async def main(registry: str, output: str):
     # Printing candidates that were filtered out
     print(separator_text("Candidates filtered out", "-"))
 
-    print("Safe not deployed:")
-    for c in safe_not_deployed_candidates:
-        print(f"\t{c.safe_address}")
+    if data := safe_not_deployed_candidates:
+        print("Safe not deployed:")
+        for c in data:
+            print(f"\t{c.safe_address}")
 
-    print("Low balance:")
-    for c in low_balance_candidates:
-        print(f"\t{c.safe_address} ({c.wxHOPR_balance})")
+    if data := low_balance_candidates:
+        print("Low balance:")
+        for c in low_balance_candidates:
+            print(f"\t{c.safe_address} ({c.wxHOPR_balance} wxHOPR)")
 
-    print("Low balance with NFT:")
-    for c in low_balance_nft_candidates:
-        print(f"\t{c.safe_address} ({c.wxHOPR_balance} wxHOPR)")
+    if data := low_balance_nft_candidates:
+        print("Low balance with NFT:")
+        for c in data:
+            print(f"\t{c.safe_address} ({c.wxHOPR_balance} wxHOPR)")
 
-    print("Invalid node address:")
-    for c in invalid_node_address_candidates:
-        print(f"\t{c.safe_address} ({c.node_address} wxHOPR)")
+    if data := invalid_node_address_candidates:
+        print("Invalid node address:")
+        for c in data:
+            print(f"\t{c.safe_address} ({c.node_address})")
 
     # Sorting users according to COMM team rules
     print(separator_text("Final results", "-"))
