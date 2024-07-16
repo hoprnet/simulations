@@ -77,7 +77,7 @@ async def main(address: str, output: str):
             nodes_balances.update(Utils.safeFunds(safe_address, all_nodes, balances))
 
         print(
-            f"\tFound {len(nodes_balances[safe_address])} nodes linked to safe '{safe_address}'"
+            f"\tFound {len(nodes_balances[safe_address]['nodes_channels_balances'])} nodes linked to safe '{safe_address}'"
         )
         print(
             f"\tTotal funds in outgoing channels: {nodes_balances[safe_address]['total_balance']} wxHOPR"
