@@ -78,7 +78,9 @@ class Utils:
             if value["source_node_address"] not in matching_node_addresses:
                 continue
 
-            nodes_balances[value["source_node_address"]] = value["channels_balance"]
+            nodes_balances[value["source_node_address"]] = float(
+                value["channels_balance"]
+            )
 
         # Safe balance
         safe_balance = matching_nodes[0].wxHoprBalance if len(matching_nodes) > 0 else 0

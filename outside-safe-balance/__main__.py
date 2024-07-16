@@ -79,9 +79,11 @@ async def main(address: str, output: str):
         print(
             f"\tFound {len(nodes_balances[safe_address]['nodes_channels_balances'])} nodes linked to safe '{safe_address}'"
         )
-        print(
-            f"\tTotal funds in outgoing channels: {nodes_balances[safe_address]['total_balance']} wxHOPR"
+
+        channels_balance = sum(
+            nodes_balances[safe_address]["nodes_channels_balances"].values()
         )
+        print(f"\tTotal funds in outgoing channels: {channels_balance} wxHOPR")
     else:
         with TaskManager(f"Getting funds for {len(safe_addresses)} safes"):
             for safe_address in safe_addresses:
