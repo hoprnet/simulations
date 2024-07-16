@@ -7,16 +7,14 @@ class Candidate(Entry):
     def __init__(
         self,
         safe_address: str,
+        node_address: str,
         wxHOPR_balance: float,
         nr_nft: bool,
-        nft_id: int,
     ):
         self.safe_address = safe_address
+        self.node_address = node_address
         self.wxHOPR_balance = wxHOPR_balance
         self.nr_nft = nr_nft
-        self.nft_id = nft_id
-
-        self.node_address = ""
 
     @property
     def safe_address(self) -> str:
@@ -61,5 +59,4 @@ class Candidate(Entry):
             "node_address": "node_address",
             "wxHOPR_balance": "wxHOPR_balance",
             "nr_nft": "nr_nft",
-            "nft_id": "nft_id",
         }

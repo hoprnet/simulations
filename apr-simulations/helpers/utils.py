@@ -17,19 +17,17 @@ from models.economic_model import (
 from models.peer import Address, Peer
 from models.subgraph_entry import SubgraphEntry
 from models.tolopogy_entry import TopologyEntry
-from models.interactive_parameter import InteractiveParameter, ParameterType
 
-import yaml
 
 class Utils:
     @classmethod
     def daysInThePast(cls, days: int):
         return datetime.now() - timedelta(days=days)
-    
+
     @classmethod
     def utf8len(cls, s: str):
         return len(s.encode())
-    
+
     @classmethod
     def envvar(cls, key, type: type, default=None):
         var = environ.get(key, default)
@@ -233,16 +231,31 @@ class Utils:
         Utils.rewardProbability(eligibles)
 
         return eligibles
-    
+
     @classmethod
-    def addExtraNodes(cls, count: int, extra_stake: int, extra_apr: float, target_apr: float, token_price: float, limits: list[int], slope: float, flattening_factor: float, eligibles: list[Peer]):
+    def addExtraNodes(
+        cls,
+        count: int,
+        extra_stake: int,
+        extra_apr: float,
+        target_apr: float,
+        token_price: float,
+        limits: list[int],
+        slope: float,
+        flattening_factor: float,
+        eligibles: list[Peer],
+    ):
         for _ in range(count):
             eligibles.append(Peer.extra(extra_stake))
 
-        total_stake = sum(peer.split_stake for peer in eligibles if peer.split_stake > limits[0])
+        total_stake = sum(
+            peer.split_stake for peer in eligibles if peer.split_stake > limits[0]
+        )
         budget_dollars = target_apr * total_stake / 12 / 100 * token_price
 
-        eligibles = Utils.getRewardProbability(eligibles, token_price, budget_dollars, limits, slope, flattening_factor)
+        eligibles = Utils.getRewardProbability(
+            eligibles, token_price, budget_dollars, limits, slope, flattening_factor
+        )
 
         # probability adjustment
         for peer in eligibles:
@@ -257,12 +270,9 @@ class Utils:
             peer.reward_probability /= total_probability
 
         return eligibles
-    
+
     @classmethod
-    def dumpSnapshot(
-        cls,
-        **kwargs
-    ):
+    def dumpSnapshot(cls, **kwargs):
         date_time = datetime.now().strftime("%Y_%m_%d")
         folder_path = Path(f"snapshots/{date_time}")
         folder_path.mkdir(parents=True, exist_ok=True)
@@ -277,8 +287,8 @@ class Utils:
         for key in args:
             if not Path(f"snapshots/{folder}/{key}.pkl").exists():
                 return None
-            
+
             with open(f"snapshots/{folder}/{key}.pkl", "rb") as f:
                 data.append(pickle.load(f))
-            
+
         return data

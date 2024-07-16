@@ -1,7 +1,5 @@
 import asyncio
 import functools
-from os import environ
-from typing import Any
 
 from .graphql_providers import ProviderError, SafesProvider
 from .safe import Safe

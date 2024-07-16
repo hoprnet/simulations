@@ -105,9 +105,8 @@ class EventsIO:
             print(f"Loading data from block {minblock} to {last_block}")
 
         provider = EventsProvider(url)
-        data = []
+        data, temp_data = [], []
         idx = 0
-
         while idx == 0 or len(temp_data) == 6000:
             block_number = int(data[-1]["block_number"]) if len(data) > 0 else minblock
             temp_data = await provider.get(block_number=str(block_number))

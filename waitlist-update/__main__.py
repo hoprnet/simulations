@@ -72,11 +72,10 @@ async def main(registry: str, output: str):
         deployed_safe = deployed_safes[index]
         candidate = Candidate(
             deployed_safe.address,
+            c.node_address,
             deployed_safe.wxHoprBalance,
             c.safe_address in nft_holders,
-            None,
         )
-        candidate.node_address = c.node_address
 
         if candidate.wxHOPR_balance < 10_000:
             low_balance_candidates.append(candidate)
@@ -105,17 +104,17 @@ async def main(registry: str, output: str):
             print(f"\t{c.safe_address}")
 
     if data := low_balance_candidates:
-        print("Low balance:")
+        print("Low balance safes -- format <safe> (<balance>):")
         for c in low_balance_candidates:
             print(f"\t{c.safe_address} ({c.wxHOPR_balance} wxHOPR)")
 
     if data := low_balance_nft_candidates:
-        print("Low balance with NFT:")
+        print("Low balance with NFT -- format <safe> (<balance>):")
         for c in data:
             print(f"\t{c.safe_address} ({c.wxHOPR_balance} wxHOPR)")
 
     if data := invalid_node_address_candidates:
-        print("Invalid node address:")
+        print("Invalid node address -- format <safe> (<node address>):")
         for c in data:
             print(f"\t{c.safe_address} ({c.node_address})")
 

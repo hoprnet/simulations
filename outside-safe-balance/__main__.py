@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 from .graphql_providers import SafesProvider
 from .hoprd_api import HoprdAPI
-from .safe import Safe
 from .taskmanager import TaskManager
 from .utils import Utils, asynchronous
 
