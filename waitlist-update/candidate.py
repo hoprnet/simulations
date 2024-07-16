@@ -40,7 +40,7 @@ class Candidate:
                 "nodeAddresses": node_addresses_str,
             },
             "managerForceSync": {
-                "stakingAccounts": node_addresses_str,
+                "stakingAccounts": safe_addresses_str,
                 "eligibilities": eligible_str,
             },
         }
