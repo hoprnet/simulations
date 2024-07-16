@@ -1,7 +1,4 @@
-from .entry import Entry
-
-
-class Candidate(Entry):
+class Candidate:
     def __init__(
         self,
         safe_address: str,

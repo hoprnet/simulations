@@ -94,7 +94,7 @@ this will print checksum for blocks `31000000` to `31000010`, with empty blocks 
 
 ### `waitlist-update`
 
-The module generates the list of eligible nodes to join the HOPR network. It requires a `registry` file, which is the results (.xlsx format) from the form that community members fill in when asking to join. It generates an .xlsx file that list the elgibles nodes.
+The module generates the list of eligible nodes to join the HOPR network. It requires a `registry` file, which is the results (.json format) from the form that community members fill in when asking to join. It generates an .json file that list the elgibles nodes and safes in a smart contract call compliant format.
 
 The module relies solely on subgraph calls to get relevant data, and filter out non-eligible nodes. This comes with some mandatory environment variables:
 - `SUBGRAPH_SAFES_URL`: url of the `hopr-nodes-dufour` subgraph
@@ -106,7 +106,7 @@ To run the module, use the following command:
 ```sh
 python -m waitlist-update --registry <PATH_TO_REGISTRY_FILE> [--output <PATH_TO_OUTPUT_FILE>]
 ```
-- `--registry` (optional): Path to the registry file (.xslx). Default is `registy.xlsx`
+- `--registry`: Path to the registry file (.json)
 - `--output`(optional): Path to the output file (.json). Default is `output.json`
 
 ## Scripts

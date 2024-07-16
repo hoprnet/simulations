@@ -13,10 +13,10 @@ from .utils import Decorator, Display, remove_duplicates, sort_waitlist
 
 
 @click.command()
-@click.option("--registry", default="registry.xlsx", help="Registry file (.xlsx)")
+@click.option("--registry", type=Path, help="Registry file (.json)")
 @click.option("--output", type=Path, default="output.json", help="Output file (.json)")
 @Decorator.asynchronous
-async def main(registry: str, output: Path):
+async def main(registry: Path, output: Path):
     if not load_dotenv():
         print("No .env file found")
         return
@@ -41,12 +41,15 @@ async def main(registry: str, output: Path):
     deployed_safes_addresses = [s.address for s in deployed_safes]
     running_nodes = sum([s.nodes for s in deployed_safes], [])
 
-    # Loading registration data (from Andrius)
-    registered_nodes = remove_duplicates(
-        Registration.fromXLSX(registry), ["safe_address", "node_address"], True
-    )
+    # Loading registered nodes from registry
+    registry = registry.with_suffix(".json")
+    with open(registry, "r") as f:
+        registered_nodes = remove_duplicates(
+            Registration.fromJSON(json.load(f)), ["safe_address", "node_address"], True
+        )
     Display.loadedData("Registered nodes", len(registered_nodes))
 
+    # Filtering waitlist candidates (not already running)
     waitlist_candidates = [
         n for n in registered_nodes if n.node_address not in running_nodes
     ]
@@ -112,7 +115,8 @@ async def main(registry: str, output: Path):
     Display.candidates("Approved candidates", ordered_waitlist)
 
     # Exporting waitlist
-    with open(output.with_suffix(".json"), "w") as f:
+    output = output.with_suffix(".json")
+    with open(output, "w") as f:
         json.dump(Candidate.toContractData(ordered_waitlist), f, indent=4)
     print(f"\nWaitlist exported to '{output}'")
 
