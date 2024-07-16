@@ -29,16 +29,18 @@ class Candidate:
 
     @classmethod
     def toContractData(cls, entries: list["Candidate"]):
-        safe_addresses = [entry.safe_address for entry in entries]
-        node_addresses = [entry.node_address for entry in entries]
+        node_count = len(entries)
+        safe_addresses_str = "[" + ", ".join([e.safe_address for e in entries]) + "]"
+        node_addresses_str = "[" + ", ".join([e.node_address for e in entries]) + "]"
+        eligible_str = "[" + ", ".join(["true"] * node_count) + "]"
 
         return {
             "managerRegister": {
-                "stakingAccounts": safe_addresses,
-                "nodeAddresses": node_addresses,
+                "stakingAccounts": safe_addresses_str,
+                "nodeAddresses": node_addresses_str,
             },
             "managerForceSync": {
-                "stakingAccounts": node_addresses,
-                "eligibilities": [True] * len(node_addresses),
+                "stakingAccounts": node_addresses_str,
+                "eligibilities": eligible_str,
             },
         }
