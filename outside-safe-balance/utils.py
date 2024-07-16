@@ -90,6 +90,7 @@ class Utils:
             safe_address: {
                 "total_balance": channels_balance + safe_balance,
                 "safe_balance": safe_balance,
+                "channels_balance": channels_balance,
                 "nodes_channels_balances": nodes_balances,
             }
         }
