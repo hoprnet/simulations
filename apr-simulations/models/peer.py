@@ -1,5 +1,6 @@
 import random
 from typing import Union
+
 from packaging.version import Version
 
 
@@ -68,15 +69,6 @@ class Peer:
         return self.economic_model.transformed_stake(self.split_stake)
 
     @property
-    def total_balance(self) -> float:
-        if self.safe_balance is None:
-            raise ValueError("Safe balance not set")
-        if self.channel_balance is None:
-            raise ValueError("Channel balance not set")
-
-        return float(self.channel_balance) + float(self.safe_balance)
-
-    @property
     def split_stake(self) -> float:
         if self.safe_balance is None:
             raise ValueError("Safe balance not set")
@@ -89,27 +81,6 @@ class Peer:
             self.channel_balance
         )
 
-    @property
-    def rewards(self):
-        if self.economic_model is None:
-            raise ValueError("Economic model not set")
-        if self.reward_probability is None:
-            raise ValueError("Reward probability not set")
-
-        return self.reward_probability * self.economic_model.budget.budget
-
-    @property
-    def apr(self):
-        if self.economic_model is None:
-            raise ValueError("Economic model not set")
-
-        seconds_in_year = 60 * 60 * 24 * 365
-        period = self.economic_model.budget.period
-
-        apr = (self.rewards / self.split_stake) * (seconds_in_year / period)
-
-        return min(self.max_apr, apr)
-
     def __repr__(self):
         return f"Peer(address: {self.address})"
 
@@ -118,7 +89,7 @@ class Peer:
 
     def __hash__(self):
         return hash(self.address)
-    
+
     @classmethod
     def extra(cls, random_range: list[int]):
         extra = Peer("extra_peer", "extra_address", "100.0.0")

@@ -43,16 +43,19 @@ async def main(address: str, output: str):
     api = HoprdAPI(os.environ["NODE_ADDRESS"], os.environ["NODE_KEY"])
 
     # Get all peers channels balances
+    channels = await api.all_channels(False)
     with TaskManager("Getting outgoing channels for all detected nodes"):
         balances = Utils.aggregatePeerBalanceInChannels(
-            (await api.all_channels(False)).all
+            channels.all
         )
 
     with TaskManager("Getting all nodes from subgraph"):
         all_nodes = await Utils.nodesFromSubgraph(provider)
 
-    safe_addresses = list(set((map(lambda x: x.safe_address.lower(), all_nodes))))
-    node_addresses = list(set(map(lambda x: x.node_address.lower(), all_nodes)))
+    safe_addresses = list(
+        set((map(lambda x: x.safe_address.lower(), all_nodes))))
+    node_addresses = list(
+        set(map(lambda x: x.node_address.lower(), all_nodes)))
     nodes_balances = {"timestamp": time.time(), "safes": {}}
 
     if address := address:
@@ -65,7 +68,8 @@ async def main(address: str, output: str):
                 addressType = AddressType.SAFE
 
             elif address in node_addresses:
-                safe_address = all_nodes[node_addresses.index(address)].safe_address
+                safe_address = all_nodes[node_addresses.index(
+                    address)].safe_address
                 addressType = AddressType.NODE
 
             else:
@@ -74,7 +78,8 @@ async def main(address: str, output: str):
         print(addressType.value)
 
         with TaskManager("Getting safe funds"):
-            nodes_balances.update(Utils.safeFunds(safe_address, all_nodes, balances))
+            nodes_balances.update(Utils.safeFunds(
+                safe_address, all_nodes, balances))
 
         print(
             f"\tFound {len(nodes_balances[safe_address]['nodes_channels_balances'])} nodes linked to safe '{safe_address}'"
@@ -83,6 +88,7 @@ async def main(address: str, output: str):
         print(
             f"\tTotal funds in outgoing channels: {nodes_balances[safe_address]['channels_balance']} wxHOPR"
         )
+
     else:
         with TaskManager(f"Getting funds for {len(safe_addresses)} safes"):
             for safe_address in safe_addresses:

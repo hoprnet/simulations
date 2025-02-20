@@ -7,13 +7,6 @@ from pathlib import Path
 
 from helpers.graphql_provider import SafesProvider
 from helpers.hoprd_api import HoprdAPI
-from models.economic_model import (
-    BudgetParameters,
-    EconomicModel,
-    Equation,
-    Equations,
-    Parameters,
-)
 from models.peer import Address, Peer
 from models.subgraph_entry import SubgraphEntry
 from models.tolopogy_entry import TopologyEntry
@@ -73,9 +66,7 @@ class Utils:
     def buildSubgraphURL(cls, envvar_name: str):
         deployer_key = Utils.envvar("SUBGRAPH_DEPLOYER_KEY", str)
         query_id = Utils.envvar(envvar_name, str)
-        return (
-            f"https://gateway.thegraph.com/api/{deployer_key}/subgraphs/id/{query_id}"
-        )
+        return f"https://gateway-arbitrum.network.thegraph.com/api/{deployer_key}/subgraphs/id/{query_id}"
 
     @classmethod
     def mergeTopoPeersSafes(
@@ -96,7 +87,7 @@ class Utils:
                 continue
 
             peer.safe_address = safe.safe_address
-            peer.safe_balance = safe.wxHoprBalance
+            peer.safe_balance = float(safe.wxHoprBalance)
             peer.safe_allowance = float(safe.safe_allowance)
             peer.channel_balance = topo.channels_balance
 
@@ -205,71 +196,44 @@ class Utils:
 
         return {Peer(*[item[f] for f in fields]) for item in node_result}
 
-    @classmethod
-    def getRewardProbability(
-        cls,
-        eligibles: list[Peer],
-        token_price: float,
-        budget_dollars: int,
-        limits: list[int],
-        slope: float,
-        flattening_factor: float,
-    ):
-        equations = Equations(
-            Equation("a * x", "l <= x <= c"),
-            Equation("a * c + (x - c) ** (1 / b)", "x > c"),
-        )
+    # @classmethod
+    # def addExtraNodes(
+    #     cls,
+    #     count: int,
+    #     extra_stake: int,
+    #     extra_apr: float,
+    #     target_apr: float,
+    #     token_price: float,
+    #     limits: list[int],
+    #     slope: float,
+    #     flattening_factor: float,
+    #     eligibles: list[Peer],
+    # ):
+    #     for _ in range(count):
+    #         eligibles.append(Peer.extra(extra_stake))
 
-        parameters = Parameters(slope, flattening_factor, limits[1], limits[0])
-        budget_params = BudgetParameters(
-            budget_dollars / token_price, 2628000, 1, 365, 0.03, 1.0
-        )
-        economic_model = EconomicModel(equations, parameters, budget_params)
+    #     total_stake = sum(
+    #         peer.split_stake for peer in eligibles if peer.split_stake > limits[0]
+    #     )
+    #     budget_dollars = target_apr * total_stake / 12 / 100 * token_price
 
-        for peer in eligibles:
-            peer.economic_model = economic_model
-        Utils.rewardProbability(eligibles)
+    #     eligibles = Utils.getRewardProbability(
+    #         eligibles, token_price, budget_dollars, limits, slope, flattening_factor
+    #     )
 
-        return eligibles
+    #     # probability adjustment
+    #     for peer in eligibles:
+    #         if "extra_address" not in peer.address.address:
+    #             continue
+    #         peer.reward_probability *= extra_apr
 
-    @classmethod
-    def addExtraNodes(
-        cls,
-        count: int,
-        extra_stake: int,
-        extra_apr: float,
-        target_apr: float,
-        token_price: float,
-        limits: list[int],
-        slope: float,
-        flattening_factor: float,
-        eligibles: list[Peer],
-    ):
-        for _ in range(count):
-            eligibles.append(Peer.extra(extra_stake))
+    #     total_probability = sum(peer.reward_probability for peer in eligibles)
 
-        total_stake = sum(
-            peer.split_stake for peer in eligibles if peer.split_stake > limits[0]
-        )
-        budget_dollars = target_apr * total_stake / 12 / 100 * token_price
+    #     # normalize the probability
+    #     for peer in eligibles:
+    #         peer.reward_probability /= total_probability
 
-        eligibles = Utils.getRewardProbability(
-            eligibles, token_price, budget_dollars, limits, slope, flattening_factor
-        )
-
-        # probability adjustment
-        for peer in eligibles:
-            if "extra_address" not in peer.address.address:
-                continue
-            peer.reward_probability *= extra_apr
-
-        total_probability = sum(peer.reward_probability for peer in eligibles)
-
-        # normalize the probability
-        for peer in eligibles:
-            peer.reward_probability /= total_probability
-
-        return eligibles
+    #     return eligibles
 
     @classmethod
     def dumpSnapshot(cls, **kwargs):

@@ -24,7 +24,6 @@ class Utils:
         """
         Returns a dict containing all unique source_peerId-source_address links.
         """
-
         results: dict[str, dict] = {}
         for c in channels:
             if not (
@@ -40,6 +39,11 @@ class Utils:
             if c.source_peer_id not in results:
                 results[c.source_peer_id] = {
                     "source_node_address": c.source_address,
+                    "channels_balance": 0,
+                }
+            if c.destination_peer_id not in results:
+                results[c.destination_peer_id] = {
+                    "source_node_address": c.destination_address,
                     "channels_balance": 0,
                 }
 

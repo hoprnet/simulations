@@ -1,5 +1,5 @@
 from helpers.utils import Utils
-from sqlalchemy import create_engine, MetaData, Table
+from sqlalchemy import MetaData, Table, create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import Session
 
@@ -12,14 +12,16 @@ class RPChPostgres:
         self.port = Utils.envvar("PG_PORT", int)
         self.database = Utils.envvar("PG_DATABASE", str)
 
-        print(f"Setup connection to PostgreSQL database on {self.host} as `{self.username}`")
+        print(
+            f"Setup connection to PostgreSQL database on {self.host} as `{self.username}`"
+        )
 
         self.url = URL(
             drivername="postgresql+psycopg2",
             username=self.username,
             password=self.password,
             host=self.host,
-            query={"sslmode": "require"},
+            query={"sslmode": "prefer"},
             port=self.port,
             database=self.database,
         )
@@ -33,20 +35,23 @@ class RPChPostgres:
     def get_xday_data(self, table: str, days: int):
         table: Table = self.metadata.tables[table]
         # get all data from the last days including the row index
-        select_stmt = table.select().where(table.c.created_at >= Utils.daysInThePast(days)).order_by(table.c.id.desc())
+        select_stmt = (
+            table.select()
+            .where(table.c.created_at >= Utils.daysInThePast(days))
+            .order_by(table.c.id.desc())
+        )
         requests = self.session.execute(select_stmt).fetchall()
 
-        print(f"\tfetched data from `{table}`")    
-        
+        print(f"\tfetched data from `{table}`")
+
         return requests
-    
+
     def get_7day_data(self, table: str):
         return self.get_xday_data(table, 7)
-    
+
     def get_30day_data(self, table: str):
         return self.get_xday_data(table, 30)
 
-    
     def __enter__(self):
         return self
 

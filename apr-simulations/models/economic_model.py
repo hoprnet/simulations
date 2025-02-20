@@ -1,7 +1,14 @@
+from models.parameters import Parameters
+
+
 class Equation:
     def __init__(self, formula: str, condition: str):
         self.formula = formula
         self.condition = condition
+
+    @classmethod
+    def fromParameters(cls, parameters: Parameters):
+        return cls(parameters.formula, parameters.condition)
 
 
 class Equations:
@@ -9,53 +16,68 @@ class Equations:
         self.f_x = f_x
         self.g_x = g_x
 
+    @classmethod
+    def fromParameters(cls, parameters: Parameters):
+        return cls(
+            Equation.fromParameters(parameters.fx),
+            Equation.fromParameters(parameters.gx),
+        )
 
-class Parameters:
+
+class Coefficients:
     def __init__(self, a: float, b: float, c: float, l: float):  # noqa: E741
         self.a = a
         self.b = b
         self.c = c
         self.l = l
 
+    @classmethod
+    def fromParameters(cls, parameters: Parameters):
+        return cls(
+            parameters.a,
+            parameters.b,
+            parameters.c,
+            parameters.l,
+        )
 
-class BudgetParameters:
+
+class EconomicModelLegacy:
     def __init__(
         self,
-        budget: float,
-        period: float,
-        s: float,
-        distribution_frequency: float,
-        ticket_price: float,
-        winning_probability: float,
+        equations: Equations,
+        coefficients: Coefficients,
+        proportion: float,
+        apr: float,
     ):
-        self.budget = budget
-        self.period = period
-        self.s = s
-        self.distribution_frequency = distribution_frequency
-        self.ticket_price = ticket_price
-        self.winning_probability = winning_probability
-
-    @property
-    def delay_between_distributions(self):
-        return self.period / self.distribution_frequency
-
-
-class EconomicModel:
-    def __init__(
-        self, equations: Equations, parameters: Parameters, budget: BudgetParameters
-    ):
+        """
+        Initialisation of the class.
+        """
         self.equations = equations
-        self.parameters = parameters
-        self.budget = budget
+        self.coefficients = coefficients
+        self.proportion = proportion
+        self.apr = apr
 
     def transformed_stake(self, stake: float):
         # convert parameters attribute to dictionary
-        kwargs = vars(self.parameters)
+        kwargs = vars(self.coefficients)
         kwargs.update({"x": stake})
 
-        if eval(self.equations.f_x.condition, kwargs):
-            func = self.equations.f_x
+        for func in vars(self.equations).values():
+            if eval(func.condition, kwargs):
+                break
         else:
-            func = self.equations.g_x
+            return 0
 
         return eval(func.formula, kwargs)
+
+    @classmethod
+    def fromParameters(cls, parameters: Parameters):
+        return cls(
+            Equations.fromParameters(parameters.equations),
+            Coefficients.fromParameters(parameters.coefficients),
+            parameters.proportion,
+            parameters.apr,
+        )
+
+    def __repr__(self):
+        return f"EconomicModelLegacy({self.equations}, {self.coefficients})"
