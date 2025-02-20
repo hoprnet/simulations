@@ -1,0 +1,5 @@
+nodeSafeRegistrations(where: {safe: $safe}) {
+  node {
+    id
+  }
+}
