@@ -8,14 +8,7 @@ def aggregate_peer_balance_in_channels(channels: list) -> dict[str, dict]:
     """
     results: dict[str, dict] = {}
     for c in channels:
-        if not (
-            hasattr(c, "source_peer_id")
-            and hasattr(c, "source_address")
-            and hasattr(c, "status")
-        ):
-            continue
-
-        if c.status != "Open":
+        if not c.status.is_open:
             continue
 
         if c.source_peer_id not in results:
