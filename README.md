@@ -55,10 +55,18 @@ python -m outside-safe-balance [--address <ADDRESS> --output <JSON_OUTPUT_PATH>]
 
 Some environment files needs to be set beforehead. You can either set them by your own, or copy/paste/rename the `.env.example` file to `.env` and specify the desired values there.
 
-### `checksum-baseline`
-This module generate the baseline checksum for every block containing HOPRd logs.
+### `tickets-issued-from-safe`
+This module generates the amount of wxHOPR that was sent out of a given safe through winning tickets. It first gets the associated nodes, and then gets the tickets where those nodes were the issuers.
 
-Multiple parameter can be set:
+Multiple parameters can be set:
+- `--safe`: The safe which the nodes of interest are linked to
+- `--output` (optional): An output file. Can be a `.json`, `.yaml` or `.yml` file.
+
+
+### `checksum-baseline`
+This module generates the baseline checksum for every block containing HOPRd logs.
+
+Multiple parameters can be set:
 - `--minblock` (optional): The block number to start gettings logs from. Should not be changed, unless you know what you are doing. Default is `29706814`
 - `--block`: The block you want the checksum from. Can be a lower-bound block, if `endblock` is set.
 - `--to` (optional): The upper-bound block you want the checksum from.

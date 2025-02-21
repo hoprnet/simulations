@@ -1,0 +1,13 @@
+tickets(
+    first: $first,
+    skip: $skip,
+    where: {channel_: {source_in: $source_in}}
+) {
+    amount
+    id
+    channel {
+      source {
+        id
+      }
+    }
+}
