@@ -1,7 +1,0 @@
-query lastBlock {
-  _meta {
-    block {
-      number
-    }
-  }
-}

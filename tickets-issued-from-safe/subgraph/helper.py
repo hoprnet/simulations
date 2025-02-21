@@ -1,11 +1,11 @@
-import os
+from lib.subgraph import ProviderError
 
 from .entries import Node, Ticket
-from .providers import ProviderError, SafesProvider, TicketsProvider
+from .providers import SafesProvider, TicketsProvider
 
 
 async def safe_to_nodes(safe_address: str) -> list[Node]:
-    safe_provider = SafesProvider(os.environ["SUBGRAPH_SAFES_URL"])
+    safe_provider = SafesProvider("SUBGRAPH_SAFES_URL")
 
     try:
         entries = [Node.fromSubgraphResult(n) for n in (await safe_provider.get(safe=safe_address))]
@@ -17,7 +17,7 @@ async def safe_to_nodes(safe_address: str) -> list[Node]:
 
 
 async def nodes_to_tickets(relayers: list[Node]) -> list[Ticket]:
-    ticket_provider = TicketsProvider(os.environ["SUBGRAPH_TICKETS_URL"])
+    ticket_provider = TicketsProvider("SUBGRAPH_TICKETS_URL")
 
     node_addresses = [r.id for r in relayers]
 

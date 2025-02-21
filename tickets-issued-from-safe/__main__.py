@@ -4,10 +4,11 @@ import click
 import yaml
 from dotenv import load_dotenv
 
+from lib.helper import asynchronous
+from lib.taskmanager import TaskManager
+
 from .subgraph import helper
 from .subgraph.entries import Ticket
-from .taskmanager import TaskManager
-from .utils import asynchronous
 
 export_method = {
     "json": json.dump,

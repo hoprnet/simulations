@@ -6,10 +6,12 @@ from enum import Enum
 import click
 from dotenv import load_dotenv
 
-from .graphql_providers import SafesProvider
-from .hoprd_api import HoprdAPI
-from .taskmanager import TaskManager
-from .utils import Utils, asynchronous
+from lib.helper import asynchronous
+from lib.hoprd_api import HoprdAPI
+from lib.taskmanager import TaskManager
+
+from . import helper
+from .subgraph.providers import SafesProvider
 
 
 class AddressType(Enum):
@@ -39,18 +41,18 @@ async def main(address: str, output: str):
         print("No .env file found")
         return
 
-    provider = SafesProvider(os.environ["SUBGRAPH_SAFES_URL"])
+    provider = SafesProvider("SUBGRAPH_SAFES_URL")
     api = HoprdAPI(os.environ["NODE_ADDRESS"], os.environ["NODE_KEY"])
 
     # Get all peers channels balances
-    channels = await api.all_channels(False)
+    channels = await api.channels()
     with TaskManager("Getting outgoing channels for all detected nodes"):
-        balances = Utils.aggregatePeerBalanceInChannels(
+        balances = helper.aggregate_peer_balance_in_channels(
             channels.all
         )
 
     with TaskManager("Getting all nodes from subgraph"):
-        all_nodes = await Utils.nodesFromSubgraph(provider)
+        all_nodes = await helper.nodes_from_subgraph(provider)
 
     safe_addresses = list(
         set((map(lambda x: x.safe_address.lower(), all_nodes))))
@@ -78,7 +80,7 @@ async def main(address: str, output: str):
         print(addressType.value)
 
         with TaskManager("Getting safe funds"):
-            nodes_balances.update(Utils.safeFunds(
+            nodes_balances.update(helper.safe_funds(
                 safe_address, all_nodes, balances))
 
         print(
@@ -93,7 +95,7 @@ async def main(address: str, output: str):
         with TaskManager(f"Getting funds for {len(safe_addresses)} safes"):
             for safe_address in safe_addresses:
                 nodes_balances["safes"].update(
-                    Utils.safeFunds(safe_address, all_nodes, balances)
+                    helper.safe_funds(safe_address, all_nodes, balances)
                 )
 
     if output := output:

@@ -1,21 +1,22 @@
 import json
-from os import environ
 from pathlib import Path
 
 import click
 from dotenv import load_dotenv
 
+from lib.helper import asynchronous
+
 from .candidate import Candidate
-from .graphql_providers import NFTProvider, SafesProvider
+from .helper import Display, remove_duplicates, sort_waitlist
 from .registration import Registration
-from .safe import Safe
-from .utils import Decorator, Display, remove_duplicates, sort_waitlist
+from .subgraph.entries import NFTHolder, Safe
+from .subgraph.providers import NFTProvider, SafesProvider
 
 
 @click.command()
 @click.option("--registry", type=Path, help="Registry file (.json)")
 @click.option("--output", type=Path, default="output.json", help="Output file (.json)")
-@Decorator.asynchronous
+@asynchronous
 async def main(registry: Path, output: Path):
     if not load_dotenv():
         print("No .env file found")
@@ -24,19 +25,16 @@ async def main(registry: Path, output: Path):
     # Loading nft holders from subgraph
     nft_holders = list[str]()
 
-    for entry in await NFTProvider.safe_get(environ.get("SUBGRAPH_NFT_URL")):
-        if owner := entry.get("owner", {}).get("id", None):
-            nft_holders.append(owner)
+    for entry in await NFTProvider("SUBGRAPH_NFT_URL").get():
+        nft_holders.append(NFTHolder.fromSubgraphResult(entry))
+    Display.loadedData("NFTHolder", len(nft_holders))
 
     # Loading deployed safes from subgraph
     deployed_safes = list[Safe]()
-    for entry in await SafesProvider.safe_get(environ.get("SUBGRAPH_SAFES_URL")):
-        safe_address = entry.get("id", {})
-        wxHOPR_balance = float(entry.get("balance", {}).get("wxHoprBalance", "0"))
-        nodes = entry.get("registeredNodesInNetworkRegistry", {})
+    for entry in await SafesProvider("SUBGRAPH_SAFES_URL").get():    
+        deployed_safes.append(Safe.fromSubgraphResult(entry))
+    Display.loadedData("SafesProvider", len(deployed_safes))
 
-        entry = Safe(safe_address, wxHOPR_balance, [n["node"]["id"] for n in nodes])
-        deployed_safes.append(entry)
 
     deployed_safes_addresses = [s.address for s in deployed_safes]
     running_nodes = sum([s.nodes for s in deployed_safes], [])

@@ -1,4 +1,4 @@
-from .entry import Entry
+from lib.subgraph import Entry
 
 
 class Ticket(Entry):
