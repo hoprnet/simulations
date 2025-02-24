@@ -75,7 +75,7 @@ async def main(registry: Path, output: Path):
             deployed_safe.address,
             wc.node_address,
             deployed_safe.balance,
-            wc.safe_address in nft_holders,
+            wc.safe_address in [h.address for h in nft_holders],
         )
 
         if not candidate.node_address:
