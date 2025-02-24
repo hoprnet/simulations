@@ -44,15 +44,17 @@ async def main(safe: str, output: Path):
     with TaskManager("Aggregating ticket amounts"):
         stats = Ticket.aggregate(tickets)
 
-    print(f"\tTotal amount redeemed: {stats['total']:7.2f} wxHOPR")
-    for address, amount in stats["nodes"].items():
-        print(f"\tAmount redeemed by {address}: {amount:7.2f} wxHOPR")
+    print(
+        f"\tTotal amount redeemed: {stats.resume.value:7.2f} wxHOPR ({stats.resume.count} tickets)")
+        
+    for address, stat in stats.nodes.items():
+        print(f"\tAmount redeemed by {address}: {stat.value:7.2f} wxHOPR ({stat.count} tickets)")
 
     if not output:
         return
     
     with TaskManager(f"Dumping total tickets amounts to {output}"):
-        exporter.export(output, stats)
+        exporter.export(output, stats.as_dict)
 
 if __name__ == "__main__":
     main()
