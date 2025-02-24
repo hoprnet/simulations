@@ -1,11 +1,12 @@
-import json
 import os
 import time
 from enum import Enum
+from pathlib import Path
 
 import click
 from dotenv import load_dotenv
 
+from lib import exporter
 from lib.helper import asynchronous
 from lib.hoprd_api import HoprdAPI
 from lib.taskmanager import TaskManager
@@ -31,8 +32,8 @@ class AddressType(Enum):
 @click.option(
     "--output",
     "output",
-    default=None,
-    required=False,
+    default="output.json",
+    type=Path,
     help="Output file (.json) to save the results",
 )
 @asynchronous
@@ -98,10 +99,8 @@ async def main(address: str, output: str):
                     helper.safe_funds(safe_address, all_nodes, balances)
                 )
 
-    if output := output:
-        with TaskManager(f"Dumping nodes total outgoing funds to {output}"):
-            with open(output, "w") as f:
-                json.dump(nodes_balances, f)
+    with TaskManager(f"Dumping nodes total outgoing funds to {output}"):
+        exporter.export(output, nodes_balances)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,9 @@ from pathlib import Path
 import click
 from dotenv import load_dotenv
 
+from lib import exporter
 from lib.helper import asynchronous
+from lib.taskmanager import TaskManager
 
 from .candidate import Candidate
 from .helper import Display, remove_duplicates, sort_waitlist
@@ -24,34 +26,36 @@ async def main(registry: Path, output: Path):
 
     # Loading nft holders from subgraph
     nft_holders = list[str]()
-
-    for entry in await NFTProvider("SUBGRAPH_NFT_URL").get():
-        nft_holders.append(NFTHolder.fromSubgraphResult(entry))
-    Display.loadedData("NFTHolder", len(nft_holders))
+    with TaskManager("Getting NFT holders from subgraph"):
+        for entry in await NFTProvider("SUBGRAPH_NFT_URL").get():
+            nft_holders.append(NFTHolder.fromSubgraphResult(entry))
+    print(f"\tLoaded {len(nft_holders)} entries")
 
     # Loading deployed safes from subgraph
     deployed_safes = list[Safe]()
-    for entry in await SafesProvider("SUBGRAPH_SAFES_URL").get():    
-        deployed_safes.append(Safe.fromSubgraphResult(entry))
-    Display.loadedData("SafesProvider", len(deployed_safes))
-
+    with TaskManager("Getting deployed safes from subgraph"):
+        for entry in await SafesProvider("SUBGRAPH_SAFES_URL").get():    
+            deployed_safes.append(Safe.fromSubgraphResult(entry))
+    print(f"\tLoaded {len(deployed_safes)} entries")
 
     deployed_safes_addresses = [s.address for s in deployed_safes]
     running_nodes = sum([s.nodes for s in deployed_safes], [])
 
     # Loading registered nodes from registry
     registry = registry.with_suffix(".json")
-    with open(registry, "r") as f:
-        registered_nodes = remove_duplicates(
-            Registration.fromJSON(json.load(f)), ["safe_address", "node_address"], True
-        )
-    Display.loadedData("Registered nodes", len(registered_nodes))
+
+    with TaskManager("Loading registered nodes from registry"):
+        with open(registry, "r") as f:
+            registered_nodes = remove_duplicates(
+                Registration.fromJSON(json.load(f)), ["safe_address", "node_address"], True
+            )
+    print(f"\tLoaded {len(registered_nodes)} entries")
 
     # Filtering waitlist candidates (not already running)
     waitlist_candidates = [
         n for n in registered_nodes if n.node_address not in running_nodes
     ]
-    Display.loadedData("Waitlist candidates", len(waitlist_candidates))
+    print(f"There's {len(waitlist_candidates)} candidate for joining network")
 
     # Filtering candidates by stake and NFT ownership
     cases = [
@@ -113,10 +117,8 @@ async def main(registry: Path, output: Path):
     Display.candidates("Approved candidates", ordered_waitlist)
 
     # Exporting waitlist
-    output = output.with_suffix(".json")
-    with open(output, "w") as f:
-        json.dump(Candidate.toContractData(ordered_waitlist), f, indent=4)
-    print(f"\nWaitlist exported to '{output}'")
+    with TaskManager(f"Exporting waitlist to {output}"):
+        exporter.export(output, Candidate.toContractData(ordered_waitlist))
 
 
 if __name__ == "__main__":

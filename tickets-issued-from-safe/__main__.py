@@ -1,20 +1,14 @@
-import json
+from pathlib import Path
 
 import click
-import yaml
 from dotenv import load_dotenv
 
+from lib import exporter
 from lib.helper import asynchronous
 from lib.taskmanager import TaskManager
 
 from .subgraph import helper
 from .subgraph.entries import Ticket
-
-export_method = {
-    "json": json.dump,
-    "yaml": yaml.dump,
-    "yml": yaml.dump,
-}
 
 
 @click.command()
@@ -30,10 +24,11 @@ export_method = {
     "output",
     default=None,
     required=False,
+    type=Path,
     help="Output file (.json/.yaml/.yml) where save the results to",
 )
 @asynchronous
-async def main(safe: str, output: str):
+async def main(safe: str, output: Path):
     if not load_dotenv():
         print("No .env file found")
         return
@@ -57,13 +52,7 @@ async def main(safe: str, output: str):
         return
     
     with TaskManager(f"Dumping total tickets amounts to {output}"):
-        ext = output.split(".")[-1]
-
-        if ext in export_method:
-            with open(output, "w") as f:
-                export_method[ext](stats, f)
-        else:
-            raise ValueError("Output file must be a .json or .yaml file")
+        exporter.export(output, stats)
 
 if __name__ == "__main__":
     main()
