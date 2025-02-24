@@ -8,5 +8,3 @@ class Node(Entry):
     @classmethod
     def fromSubgraphResult(cls, node: dict):
         return cls(node["node"]['id'])
-
-
