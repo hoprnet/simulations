@@ -30,9 +30,9 @@ class Display:
             print(string)
 
     @classmethod
-    def excludedCandidates(cls, exclusion_list: list[dict]):
-        for v in exclusion_list:
-            cls.candidates(v["case"], v["list"])
+    def excludedCandidates(cls, exclusion_list: dict):
+        for key, value in exclusion_list.items():
+            cls.candidates(key.value, value)
 
     @classmethod
     def loadedData(cls, type: str, count: int):

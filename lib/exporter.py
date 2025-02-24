@@ -13,6 +13,6 @@ export_method = {
 def export(file: Path, content: dict):
     if file.suffix in export_method:
         with open(file, "w") as f:
-            export_method[file.suffix](content, f)
+            export_method[file.suffix](content, f, indent=4)
     else:
         raise ValueError(f"Output file must be a dict file ({', '.join(export_method.keys())})")
