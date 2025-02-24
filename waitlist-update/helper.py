@@ -1,21 +1,4 @@
-import asyncio
-import functools
 import os
-
-
-class Decorator:
-    @classmethod
-    def asynchronous(cls, func):
-        """
-        Decorator to run async functions synchronously. Helpful espacially for the main function,
-        when used alongside the click library.
-        """
-
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            return asyncio.run(func(*args, **kwargs))
-
-        return wrapper
 
 
 class Display:
@@ -47,9 +30,9 @@ class Display:
             print(string)
 
     @classmethod
-    def excludedCandidates(cls, exclusion_list: list[dict]):
-        for v in exclusion_list:
-            cls.candidates(v["case"], v["list"])
+    def excludedCandidates(cls, exclusion_list: dict):
+        for key, value in exclusion_list.items():
+            cls.candidates(key.value, value)
 
     @classmethod
     def loadedData(cls, type: str, count: int):

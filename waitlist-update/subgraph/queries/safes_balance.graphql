@@ -1,0 +1,11 @@
+safes(first: $first, skip: $skip) {
+    id
+    balance {
+        wxHoprBalance
+    }
+    registeredNodesInNetworkRegistry { 
+        node { 
+            id 
+        } 
+    }
+}

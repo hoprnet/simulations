@@ -1,14 +1,14 @@
 from pathlib import Path
 
 import click
+from dotenv import load_dotenv
 
-from .block import BlocksIO
-from .library import asynchronous
+from lib.helper import asynchronous
+
+from .blocks_io import BlocksIO
 
 RESET = "\033[0m"
 BOLD = "\033[1m"
-
-url = "https://api.studio.thegraph.com/query/58438/logs-for-hoprd/version/latest"
 
 
 @click.command()
@@ -54,22 +54,28 @@ async def main(
     no_update: bool,
     fill: bool,
 ):
+    if not load_dotenv():
+        print("No .env file found")
+        return
+
     blocks_io = BlocksIO(blocksfile, folder)
 
     if blocksfile and blocksfile.exists():
-        blocks_io.fromJSON()
+        blocks_io.from_json()
         minblock = blocks_io.blocks[-1].number
 
     if not no_update:
-        await blocks_io.fromSubgraphData(minblock, url)
-        blocks_io.toJSON()
+
+
+        await blocks_io.from_subgraph_data(minblock, "SUBGRAPH_LOGS_URL")
+        blocks_io.to_json()
     else:
         print("Skipping blocks update with onchain data")
 
     if fill:
-        blocks_io.fillMissingBlocks()
+        blocks_io.fill_missing_blocks()
 
-    block_numbers = BlocksIO.blockNumbers(blocks_io.blocks)
+    block_numbers = BlocksIO.block_numbers(blocks_io.blocks)
 
     if endblock:
         block_range = range(startblock, endblock + 1)

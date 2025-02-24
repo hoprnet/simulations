@@ -8,6 +8,7 @@ class TaskManager:
     def __exit__(self, type, value, traceback):
         if type:
             print("❌")
-            print(f"Error: {value}")
+            print(f"\tErr: {value}")
+            exit(0)
         else:
             print("✅")

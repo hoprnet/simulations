@@ -3,50 +3,10 @@ import signal
 import sys
 from pathlib import Path
 
-from .event import Event, EventsIO
-from .library import keccak_256
+from lib.helper import keccak_256
 
-
-class Block:
-    def __init__(self, block_number: int):
-        self.number = block_number
-        self.checksum = None
-        self.events: list[Event] = []
-
-    @property
-    def block_hash(self):
-        return self.keccak_256().hex()
-
-    def json_format(self):
-        return {
-            f"{self.number}": {
-                "checksum": self.checksum.hex(),
-                "events": [event.json_format() for event in self.events],
-            }
-        }
-
-    def add_event(self, event: Event):
-        self.events.append(event)
-
-    def keccak_256(self):
-        return keccak_256(b"".join([event.tx_hash_bytes for event in self.events]))
-
-    def __lt__(self, other):
-        return self.number < other.number
-
-    def __repr__(self):
-
-        output = f"checksum @ block {self.number}: 0x{self.checksum.hex()}"
-
-        if len(self.events) > 0:
-            output += f" (hash: 0x{self.block_hash[:6]}...)"
-        else:
-            output += " (no events)"
-
-        for event in self.events:
-            output += f"\n  {event}"
-
-        return output
+from .events_io import EventsIO
+from .subgraph.entries import Block, Event
 
 
 class BlocksIO:
@@ -56,7 +16,7 @@ class BlocksIO:
         self.blocks: list[Block] = []
         signal.signal(signal.SIGINT, self.interruption_handler)
 
-    def _parseData(self, data: dict):
+    def _parse_data(self, data: dict):
         # remove duplicates and sort by block_number, tx_index, log_index
         events = list(set([Event.fromDict(d) for d in data]))
         events.sort()
@@ -74,18 +34,18 @@ class BlocksIO:
             block.checksum = keccak_256(cat_str)
             checksums.append(block.checksum)
 
-    async def fromSubgraphData(self, minblock: int, url: str):
+    async def from_subgraph_data(self, minblock: int, url: str):
         # import data, either from local files or from the subgraph API
         events_io = EventsIO(self.temp_folder)
         if self.temp_folder.exists():
-            data = events_io.fromLocalFiles()
+            data = events_io.from_local_files()
         else:
             self.temp_folder.mkdir()
-            data = await events_io.fromSubgraph(url, minblock)
+            data = await events_io.from_subgraph(url, minblock)
 
-        self._parseData(data)
+        self._parse_data(data)
 
-    def fillMissingBlocks(self):
+    def fill_missing_blocks(self):
         temp_block_list: list[Block] = []
 
         for block in self.blocks:
@@ -103,7 +63,7 @@ class BlocksIO:
 
         self.blocks = temp_block_list
 
-    def fromJSON(self):
+    def from_json(self):
         print(f"Loading blocks from {self.file}")
 
         block_jsons = {}
@@ -117,7 +77,7 @@ class BlocksIO:
             block.checksum = bytearray.fromhex(block_json["checksum"])
             self.blocks.append(block)
 
-    def toJSON(self):
+    def to_json(self):
         if not self.file:
             return
 
@@ -129,19 +89,19 @@ class BlocksIO:
         with open(self.file, "w+") as f:
             json.dump(block_jsons, f)
 
-        self.removeTempFiles()
+        self.remove_temp_files()
 
-    def removeTempFiles(self):
+    def remove_temp_files(self):
         for file in self.temp_folder.iterdir():
             file.unlink()
         self.temp_folder.rmdir()
 
     def interruption_handler(self, sig, frame):
         print("")
-        self._parseData(EventsIO(self.temp_folder).fromLocalFiles())
-        self.toJSON()
+        self._parse_data(EventsIO(self.temp_folder).from_local_files())
+        self.to_json()
         sys.exit(0)
 
     @classmethod
-    def blockNumbers(cls, blocks: list[Block]):
+    def block_numbers(cls, blocks: list[Block]):
         return [block.number for block in blocks]

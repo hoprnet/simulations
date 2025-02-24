@@ -17,12 +17,6 @@ def asynchronous(func):
     return wrapper
 
 
-def keccak_256(input: bytearray):
-    k = sha3.keccak_256()
-    k.update(input)
-    return bytearray.fromhex(k.hexdigest())
-
-
 def progress_bar(current_value: int, max_value: int, percentage: float):
     """
     Print a progress bar to the console.
@@ -33,3 +27,9 @@ def progress_bar(current_value: int, max_value: int, percentage: float):
         end="",
         flush=True,
     )
+    
+
+def keccak_256(input: bytearray):
+    k = sha3.keccak_256()
+    k.update(input)
+    return bytearray.fromhex(k.hexdigest())
