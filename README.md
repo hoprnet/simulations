@@ -5,6 +5,7 @@
 - [Modules](#modules)
   - [APR simulations](#apr-simulations)
   - [Outside safe's balance](#outside-safe-balance)
+  - [Tickets issued from Safe](#tickets-issued-from-safe)
   - [Checksum baseline](#checksum-baseline)
   - [Waitlist update](#waitlist-update)
 - [Scripts](#scripts)
