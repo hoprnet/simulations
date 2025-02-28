@@ -25,7 +25,7 @@ class TicketStatistics:
     def resume(self):
         value = sum([node.value for node in self.nodes.values()])
         count = sum([node.count for node in self.nodes.values()])
-        return TicketSubStatistics(value, count)
+        return TicketSubStatistics(count, value)
 
     @property
     def as_dict(self):
