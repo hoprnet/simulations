@@ -3,36 +3,33 @@ from lib.subgraph import Entry
 
 class TicketSubStatistics:
     def __init__(self, count: int = 0, value: float = 0):
-        self.count = count
-        self.value = value
+        self.ticket_count = count
+        self.redeemed_value = value
 
     def increase_count(self, increment: int = 1):
-        self.count += increment
+        self.ticket_count += increment
 
     def increase_value(self, value: float = 0):
-        self.value += value
+        self.redeemed_value += value
 
-    @property
-    def as_dict(self):
-        return { "count": self.count, "value": self.value }
-        
-        
+
 class TicketStatistics:
+    
     def __init__(self):
         self.nodes: dict[str, TicketSubStatistics] = {}
 
     @property
     def resume(self):
-        value = sum([node.value for node in self.nodes.values()])
-        count = sum([node.count for node in self.nodes.values()])
+        value = sum([node.redeemed_value for node in self.nodes.values()])
+        count = sum([node.ticket_count for node in self.nodes.values()])
         return TicketSubStatistics(count, value)
 
     @property
     def as_dict(self):
         return {
-            "total": self.resume.value,
-            "count": self.resume.count,
-            "nodes": {source: stat.as_dict for source, stat in self.nodes.items()}
+            "redeemed_value": self.resume.redeemed_value,
+            "ticket_count": self.resume.ticket_count,
+            "ticket_issuers": {source: vars(stat) for source, stat in self.nodes.items()}
         }
 
     def increase_count(self, source: str, increment: int = 1):
@@ -44,7 +41,6 @@ class TicketStatistics:
         if source not in self.nodes:
             self.nodes[source] = TicketSubStatistics()
         self.nodes[source].increase_value(value)
-
 
 
 class Ticket(Entry):

@@ -45,14 +45,15 @@ async def main(safe: str, output: Path):
         stats = Ticket.aggregate(tickets)
 
     print(
-        f"\tTotal amount redeemed: {stats.resume.value:7.2f} wxHOPR ({stats.resume.count} tickets)")
-        
+        f"\tTotal amount redeemed: {stats.resume.redeemed_value:7.2f} wxHOPR ({stats.resume.ticket_count} tickets)")
+
     for address, stat in stats.nodes.items():
-        print(f"\tAmount redeemed by {address}: {stat.value:7.2f} wxHOPR ({stat.count} tickets)")
+        print(
+            f"\tAmount redeemed by {address}: {stat.redeemed_value:7.2f} wxHOPR ({stat.ticket_count} tickets)")
 
     if not output:
         return
-    
+
     with TaskManager(f"Dumping total tickets amounts to {output}"):
         exporter.export(output, stats.as_dict)
 
