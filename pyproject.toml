@@ -1,0 +1,57 @@
+[project]
+name = "ct-app"
+version = "3.12.0"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.12.13",
+    "gql>=3.5.3",
+    "matplotlib>=3.10.3",
+    "numpy>=2.3.1",
+    "prometheus-client>=0.22.1",
+    "psycopg2-binary>=2.9.10",
+    "sqlalchemy>=2.0.41",
+    "urllib3>=2.5.0",
+    "dotenv>=0.9.9",
+    "ipykernel>=6.29.5",
+    "ipywidgets>=8.1.7",
+    "pyyaml>=6.0.2",
+    "click>=8.2.1",
+    "safe-pysha3>=1.0.5",
+]
+
+[tool.uv.sources]
+
+[tool.uv.workspace]
+members = [
+]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.11.4",
+    "pytest-cov>=6.2.1",
+]
+lint = [
+    "black==25.1.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py312']
+include = '\.pyi?$'
+
+[tool.ruff]
+line-length = 100
+lint.select = ["E", "F"]
+lint.ignore = []
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+minversion = "7.0"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+addopts = ["-ra", "-q"]
+
+log_cli = true
+log_cli_level = "CRITICAL"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
