@@ -138,8 +138,8 @@ class SendMessageAck(ApiResponseObject):
 class Channels:
     def __init__(self, data: dict):
         self.all = [Channel(channel) for channel in data.get("all", [])]
-        self.incoming = []
-        self.outgoing = []
+        self.incoming = [Channel(channel) for channel in data.get("incoming", [])]
+        self.outgoing = [Channel(channel) for channel in data.get("outgoing", [])]
 
     def __str__(self):
         return str(self.__dict__)

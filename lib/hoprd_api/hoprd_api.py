@@ -136,12 +136,13 @@ class HoprdAPI:
         is_ok, _ = await self.__call_api(HTTPMethod.DELETE, f"channels/{channel_id}", timeout=90)
         return is_ok
 
-    async def channels(self) -> Channels:
+    async def channels(self, params: Optional[GetChannelsBody] = None) -> Channels:
         """
         Returns all channels.
         :return: channels: list
         """
-        params = GetChannelsBody("true", "false")
+        if params is None:
+            params = GetChannelsBody("true", "false")
 
         is_ok, response = await self.__call_api(
             HTTPMethod.GET, f"channels?{params.as_header_string}"
