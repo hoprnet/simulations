@@ -12,9 +12,9 @@ class ProviderError(Exception):
 
 
 class GraphQLProvider:
-    query_file: str = None
+    query_file: Optional[str] = None
     params: list[str] = []
-    default_key: list[str] = None
+    default_key: Optional[str] = None
 
     def __init__(self, url: str):
         if env_url := os.getenv(url):
@@ -36,7 +36,7 @@ class GraphQLProvider:
         if self.default_key is None:
             self.default_key = keys
 
-    def _load_query(self, path: Union[str, Path], extra_inputs: list[str] = []) -> str:
+    def _load_query(self, path: Union[str, Path], extra_inputs: list[str] = []) -> tuple[str, str]:
         """
         Loads a graphql query from a file.
         :param path: Path to the file. The path must be relative to the ct-app folder.
@@ -51,7 +51,7 @@ class GraphQLProvider:
 
         return body.split("(")[0], ("\n".join([header, body, footer]))
 
-    async def _execute(self, query: str, variable_values: dict) -> tuple[dict, dict]:
+    async def _execute(self, query: str, variable_values: dict) -> tuple[dict, Optional[dict]]:
         """
         Executes a graphql query.
         :param query: The query to execute.
@@ -90,7 +90,7 @@ class GraphQLProvider:
 
         return key in response.get("data", [])
 
-    async def _get(self, keys: list[str], **kwargs) -> dict:
+    async def _get(self, keys: list[str], **kwargs) -> list:
         """
         Gets the data from a subgraph query.
         :param key: The key to look for in the response.
@@ -145,28 +145,16 @@ class GraphQLProvider:
             if len(content) < page_size:
                 break
 
-        try:
-            if headers is not None:
-                print(
-                    f"Subgraph attestations {headers.getall('graph-attestation')}"
-                )
-        except UnboundLocalError:
-            # raised if the headers variable is not defined
-            pass
-        except KeyError:
-            # raised if using the centralized endpoint
-            pass
         return data
 
     #### DEFAULT PUBLIC METHODS ####
-    async def get(self, key: str = None, **kwargs):
+    async def get(self, key: Optional[str] = None, **kwargs):
         """
         Gets the data from a subgraph query.
         :param key: The key to look for in the response. If None, the default key is used.
         :param kwargs: The variables to use in the query (dict).
         :return: The data from the query.
         """
-
         if key is None and self.default_key is not None:
             key = self.default_key
         else:

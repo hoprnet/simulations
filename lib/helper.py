@@ -1,5 +1,7 @@
 import asyncio
 import functools
+import os
+from typing import Any
 
 import sha3
 
@@ -33,3 +35,10 @@ def keccak_256(input: bytearray):
     k = sha3.keccak_256()
     k.update(input)
     return bytearray.fromhex(k.hexdigest())
+
+
+def envvar(key: str, default: Any = None, type = str) -> Any:
+    """
+    Get an environment variable, or return a default value if not set.
+    """
+    return type(os.getenv(key, default))

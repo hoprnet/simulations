@@ -5,6 +5,7 @@
 - [Modules](#modules)
   - [APR simulations](#apr-simulations)
   - [Outside safe's balance](#outside-safe-balance)
+  - [Redeemed amount](#redeemed-amount)
   - [Tickets issued from Safe](#tickets-issued-from-safe)
   - [Checksum baseline](#checksum-baseline)
   - [Waitlist update](#waitlist-update)
@@ -51,10 +52,25 @@ An extra parameter can be provided, an output file. If provided, a json file lis
 Either way, the command is the same:
 
 ```sh
-python -m outside-safe-balance [--address <ADDRESS> --output <JSON_OUTPUT_PATH>]
+uv run -m outside-safe-balance [--address <ADDRESS> --output <JSON_OUTPUT_PATH>]
 ```
 
 Some environment files needs to be set beforehead. You can either set them by your own, or copy/paste/rename the `.env.example` file to `.env` and specify the desired values there.
+
+### `redeemed-amount`
+This module generates an estimation of the amount of wxHOPR that were redeemed thanks to CT traffic.
+
+It requires a `.env` file, with the following environment variables defined:
+- `HOST_FORMAT`: the pattern of CT nodes API endpoint, with port. The placeholders have to be deployment type, node id, and environment. In this order.
+- `TOKEN`: the API token to access the node's API
+- `DEPLOYMENT`: the type of deployment (`green` or `blue`)
+- `FUNDS_CONSTANT`: the constant amount of funds (wxHOPR) to add to the automatically retrieved funding events
+- `SUBGRAPH_FUNDING_URL`: the address of the funding subgraph to get the total amount of funds sent to the safe
+
+To run it:
+```sh
+uv run -m redeemed_amount
+```
 
 ### `tickets-issued-from-safe`
 This module generates the amount of wxHOPR that was sent out of a given safe through winning tickets. It first gets the associated nodes, and then gets the tickets where those nodes were the issuers.
@@ -81,22 +97,22 @@ Workflow is as follow: is `blocksfile` file exist, will load data from it. Else,
 Here are some ways to run the module:
 
 ```sh
-python -m checksum-baseline --block 31000000
+uv run -m checksum-baseline --block 31000000
 ```
 this will print checksum for block `31000000` and some blocks around it.
 
 ```sh
-python -m checksum-baseline --block 31000000 --to 31000010
+uv run -m checksum-baseline --block 31000000 --to 31000010
 ```
 this will print checksum for blocks `31000000` to `31000010`.
 
 ```sh
-python -m checksum-baseline --block 31000000 --to 31000010 -u
+uv run -m checksum-baseline --block 31000000 --to 31000010 -u
 ```
 this will print checksum for blocks `31000000` to `31000010`, without getting new blocks from onchain.
 
 ```sh
-python -m checksum-baseline --block 31000000 --to 31000010 -f
+uv run -m checksum-baseline --block 31000000 --to 31000010 -f
 ```
 this will print checksum for blocks `31000000` to `31000010`, with empty blocks if necessary.
 
@@ -113,7 +129,7 @@ Those values can be found in the notion page dedicated to subgraphs.
 
 To run the module, use the following command:
 ```sh
-python -m waitlist-update --registry <PATH_TO_REGISTRY_FILE> [--output <PATH_TO_OUTPUT_FILE>]
+uv run -m waitlist-update --registry <PATH_TO_REGISTRY_FILE> [--output <PATH_TO_OUTPUT_FILE>]
 ```
 - `--registry`: Path to the registry file (.json)
 - `--output`(optional): Path to the output file (.json). Default is `output.json`
