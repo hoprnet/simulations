@@ -36,25 +36,24 @@ async def main(urls: list[RPCUrl], from_block: Block, to_block: Block):
         logs[item.url] = []
 
         for start, end in get_ranges(from_block, to_block, MAX_SINGLE_QUERY_BLOCK_RANGE):
-            # print(*Color.BOLD_STRING, sep=f"Range: {start} - {end}")
-            progress_bar(start.idx, to_block.idx, percentage=(start.idx - from_block.idx) / (to_block.idx - from_block.idx))
+            if to_block != from_block:
+                progress_bar(start.idx, to_block.idx, percentage=(start.idx - from_block.idx) / (to_block.idx - from_block.idx))
 
             sub_logs: list[Log] = await ETHGetLogsRPCProvider(item.url).get(
                     fromBlock=start.idx,
                     toBlock=end.idx,
-                topics=[]
+                    address=None,
+                    topics=[]
             )
             logs[item.url].extend([log.as_dict for log in sub_logs])
         print(f" -> Found {len(logs[item.url])} logs")
 
-
-    discrepancies_found = False
     for values in zip(*logs.values()):
         if not all(value == values[0] for value in values):
-            print(f"Discrepancy found: {values=}")
-            discrepancies_found = True
-
-    if not discrepancies_found:
+            print(
+                f"Discrepancy found: {[f"{val["block_number"]}/{val["transaction_hash"]}/{val["log_index"]}" for val in values]}")
+            break
+    else :
         print("No discrepancies found.")
 
     with open("logs.json", "w") as f:

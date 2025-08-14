@@ -4,3 +4,6 @@ class Index:
 
     def __repr__(self):
         return f"Index({self.value})"
+
+    def __str__(self):
+        return hex(self.value)
