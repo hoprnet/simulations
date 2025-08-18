@@ -4,6 +4,7 @@
 - [Table of contents](#table-of-contents)
 - [Modules](#modules)
   - [APR simulations](#apr-simulations)
+  - [Compare RPCs](#compare-rpcs)
   - [Outside safe's balance](#outside-safe-balance)
   - [Redeemed amount](#redeemed-amount)
   - [Tickets issued from Safe](#tickets-issued-from-safe)
@@ -32,6 +33,8 @@ If you want to an updated version with the current running nodes in the network:
 
 If not set, a snapshot of data from the past will be used (see snapshot dates in the `snapshot` folder).
 
+### `compare-rpcs`
+Follow the guidance in `compare_rpcs/README.md`
 
 ### `outside-safe-balance`
 This module allows you to sum up all the funds in outgoing channels for nodes linked to a safe, or for every safe deployed.
