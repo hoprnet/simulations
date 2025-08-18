@@ -1,4 +1,5 @@
 import asyncio
+import datetime
 import json
 from pathlib import Path
 
@@ -69,11 +70,14 @@ async def main(
             print(" Discrepancy found: More logs with Erigon than Nethermind.")
 
             with open(Path(f"{output_file}_{start.idx}_{end.idx}.json"), "w") as f:
-                data = {key: {"url":RPCs[key], "logs": [log.as_dict for log in value]}
-                        for key, value in logs.items()}
-                data["query"] = ETHGetLogsRPCProvider.get_query(
-                    fromBlock=start.idx, toBlock=end.idx, address=address, topics=[topics])
-                
+                data = {}
+                data["logs"] = {key: [log.as_dict for log in value] for key, value in logs.items()}
+                data["meta"] = {
+                    "timestamp": datetime.datetime.now().timestamp(),
+                    "url": RPCs,
+                    "query": ETHGetLogsRPCProvider.get_query(
+                        fromBlock=start.idx, toBlock=end.idx, address=address, topics=[topics])
+                }
                 f.write(json.dumps(data, indent=4))
 
 
