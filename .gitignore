@@ -17,3 +17,6 @@ env*/
 *.xlsx
 _*/*
 .temp*/*
+
+# configs
+config.yml

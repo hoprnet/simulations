@@ -1,0 +1,94 @@
+rpc1:
+  name: Erigon
+  url: <ERIGON_RPC_URL>
+
+rpc2:
+  name: Nethermind
+  url: <NETHERMIND_RPC_URL>
+
+from_block: 0x1c54a3e # Block: 29706814
+to_block: 0x27ac861 # Block: 41601121
+block_range: 1000
+
+output_file: .results/res
+
+
+topics:
+- '0xc4df5ba16814838ab2618829d68f8623bb897302f24dbdba2279dbe45adb3d14' # AddressAnnouncement(address,string)
+- '0xbf49ccd41a4118c7e1e72143bad844e5f6ed12bf60caa642d88d19ca10244c36' # KeyBinding(bytes32,bytes32,bytes32,address)
+- '0xa4de30a528becadf82649d1395c0e30dd18ae35b5a96ce71e9295bb14bc9f3bc' # RevokeAnnouncement(address)
+
+ # SKIPPED HOPRBOOST.rs events
+
+- '0x0dfce1ea4ba1eeba891ffb2a066790fbc293a9e517fe61d49d156a30165f93f3' # RevokedTarget(address)
+- '0xf2ffd4f09d58d06824188033d3318d06eb957bfb1a8ffed9af78e1f19168b904' # ScopedGranularChannelCapability(address,bytes32,bytes4,uint8)
+- '0x7487530ddff120799505e52b1b19b6933f85a9eeae9220c80a7ad7c429b612ae' # ScopedGranularSendCapability(address,address,uint8)
+- '0xa3df710420b01cc30ff300309abbc7fadd4630d4ab385b0f5a126fb4babe762b' # ScopedGranularTokenCapability(address,address,address,bytes4,uint8)
+- '0x5ffb06b0b0e8ad6a8f3c5831d499dfa612d9c9d4dc107bbd66f18f61a6492e71' # ScopedTargetChannels(address,uint256)
+- '0x1ee2791f2caf0e92a9dc32a37a9ea53ab6ac7a6fb8f2d090e53a067d3a43f6ac' # ScopedTargetSend(address,uint256)
+- '0xaaf26bb12aa89ee96bbe19667a6a055727b75d3f6ed7b8b611ef6519180209d6' # ScopedTargetToken(address,uint256)
+
+- '0x22e2a422a8860656a3a33cfa1daf771e76798ce5649747957235025de12e0b24' # ChannelBalanceDecreased(bytes32, uint96)
+- '0x5fa17246d3a5d68d42baa94cde33042180b783a399c02bf63ac2076e0f708738' # ChannelBalanceIncreased(bytes32,uint96)
+- '0xceeab2eef998c17fe96f30f83fbf3c55fc5047f6e40c55a0cf72d236e9d2ba72' # ChannelClosed(bytes32)
+- '0xdd90f938230335e59dc925c57ecb0e27a28c2d87356e31f00cd5554abd6c1b2d' # ChannelOpened(address,address)
+- '0x771f5240ae5fd8a7640d3fb82fa70aab2fb1dbf35f2ef464f8509946717664c5' # DomainSeparatorUpdated(bytes32)
+- '0x07b5c950597fc3bed92e2ad37fa84f701655acb372982e486f5fad3607f04a5c' # OutgoingChannelClosureInitiated(bytes32,uint32)
+- '0x7165e2ebc7ce35cc98cb7666f9945b3617f3f36326b76d18937ba5fecf18739a' # TicketRedeemed(bytes32,uint48)
+
+- '0x0e63d629afe34b3ca5107c10f90abff5091b31551b371758bd50af76834dc074' # AccountDeregistered(address)
+- '0xcd822dc9688e20acea68724a2fbcfe4f3e526d20ecaa37b18fe3047ab377d6a5' # AccountRegistered(address)
+- '0xafab23a4bc8c49250ba37eeb0625b0a9b271f55d1501838d24f54508c3b17342' # AllowAllAccountsEligible(bool)`
+- '0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0' # OwnershipTransferred(address,address)
+
+- '0xa43fad83920fd09445855e854e73c9c532e17402c9ceb09993a2392843a5bdb9' # LedgerDomainSeparatorUpdated(bytes32)
+
+- '0x159a8ae948fcc6e7f8b5495c0d73e91598440af8a62817246c09edc2c28dba8a' # Deregistered(address,address)
+- '0x91760a1001f531ec2bee8602be55ad2b1159465edff5bbcd41d20703742a4d42' # DeregisteredByManager(address,address)
+- '0xe2994f8d6f600ad473dba82c0a890ab7affacb860d3365f474baa3dc04a2e557' # EligibilityUpdated(address,bool)
+- '0x8bc85f25e3e933978f099408b3bb3eb7630b76f7455f2e205bcbc0a780e17e72' # NetworkRegistryStatusUpdated(bool)
+- '0x0a31ee9d46a828884b81003c8498156ea6aa15b9b54bdd0ef0b533d9eba57e55' # Registered(address,address)
+- '0x04e1eaa4da18f7e742a4edbbe9ede36cdf75f793bb03ab2158c0877f1caf2b93' # RegisteredByManager(address,address)
+- '0x8ac4b2eb7749f75c5b99b898e547fd615dd7a424e68356ea196b7dae742d6c32' # RequirementUpdated(address)
+- '0xbd79b86ffe0ab8e8776151514217cd7cacd52c909f66475c3af44e129f0b00ff' # RoleAdminChanged(bytes32,bytes32,bytes32)
+- '0x2f8788117e7eff1d82e926ec794901d17c78024a50270940304540a733656f0d' # RoleGranted(bytes32,address,address)
+- '0xf6391f5c32d9c69d2a47ea670b442974b53935d1edc7fd64eb21e047a839171b' # RoleRevoked(bytes32,address,address)
+
+- '0x7e644d79422f17c01e4894b5f4f588d331ebfa28653d42ae832dc59e38c9798f' # AdminChanged(address,address)
+- '0x1cf3b03a6cf19fa2baba4df148e9dcabedea7f8a5c07840e207e5c089be95d3e' # BeaconUpgraded(address)
+- '0xc24d93608a03d263ff191d7677141f5e94c496e593108f3aae0cb5b70494c4d3' # ExecutionFailure()
+- '0x4e2e86d21375ebcbf6e93df5ebdd5a915bf830245904c3b54f48adf0170aae4b' # ExecutionSuccess()
+- '0x7f26b83ff96e1f2b6a682f133852f6798a09c465da95921460cefb3847402498' # Initialized(uint8)
+- '0xb25d03aaf308d7291709be1ea28b800463cf3a9a4c4a5555d7333a964c1dfebd' # NodeAdded(address)
+- '0xcfc24166db4bb677e857cacabd1541fb2b30645021b27c5130419589b84db52b' # NodeRemoved(address)
+- '0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0' # OwnershipTransferred(address,address)
+- '0x5fe6aabf4e790843df43ae0e22b58620066fb389295bedc06a92df6c3b28777d' # SetMultisendAddress(address)
+- '0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b' # Upgraded(address)
+
+- '0xe837f339639296bec9f4bc986154f5ff76bbbefc3149a512920e1311414e3da1' # DergisteredNodeSafe(address,address)
+- '0x771f5240ae5fd8a7640d3fb82fa70aab2fb1dbf35f2ef464f8509946717664c5' # DomainSeparatorUpdated(bytes32)
+- '0x776da40cbf2c223552661bd48502ceb72409b3362bb0c66d8989bd7e20e4497d' # RegisteredNodeSafe(address,address)
+
+- '0x813d391dc490d6c1dae7d3fdd555f337533d1da2c908c6efd36d4cf557a63206' # NewHoprNodeStakeModule(address,address) 
+- '0x8231d169f416b666ae7fa43faa24a18899738075a53f32c97617d173b189e386' # NewHoprNodeStakeSafe(address)
+
+- '0xaf1d1599b5c7da9a2004b57ac14784199718a90364ae47f27ac894926f0655fc' # SnapshotUpdated(uint128) 
+- '0x5fe6aabf4e790843df43ae0e22b58620066fb389295bedc06a92df6c3b28777d' # ThresholdUpdated(uint256)
+- '0x77b9cb4f87feab1ebd814bb694b7d514ee2dc1f0abd4c3957f46829c2e249dff' # TokenAndRegistryUpdated(address,address)
+
+- '0x2360ee3e77485441cfa07e30e8dc5b031fac38455647c89a763434f58733fcc1' # NftTypeAndRankAdded(uint256,string)
+- '0xb1323e42d97b2b3d45f9d4641bf4b6b3f9d0d01e90832ae7b7413109b7a5d347' # NftTypeAndRankRemoved(uint256,string)
+- '0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0' # OwnershipTransferred(address,address)
+- '0xe43bf5f5f8a1211930e5726ba0abceacb1748f97b2966db30a818ba10961cbcc' # SpecialNftTypeAndRankAdded(uint256,string,uint256)
+- '0xdb75199103504bd1d3653de758d4295bf00d4587e1d53dfc114464cc47ed97b7' # SpecialNftTypeAndRankRemoved(uint256,string)
+- '0x573bbfa679af6fdcdbd9cf191c5ef3e526599ac2bf75e9177d47adb8530b9c69' # StakeContractUpdated(address)
+- '0xadfa8ecb21b6962ebcd0adbd9ab985b7b4c5b5eb3b0dead683171565c7bfe171' # ThresholdUpdated(uint256)
+
+- '0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0' # OwnershipTransferred(address,address)
+- '0xd4c5e06b1ae097ba02372652a7adaa6e4a8e00be527497a3ad0ebc3f761ef3fb' # TicketPriceUpdated(uint256,uint256)
+
+# SKIPPED HOPRTOKEN.rs events
+
+- '0x38d16b8cac22d99fc7c124b9cd0de2d3fa1faef420bfe791d8c362d765e22700' # OwnershipTransferStarted(address,address)
+- '0x02728c4a80373f4765559dc3a046edea88186424827238bb46245668315d3800' # WinProbUpdated(uint56,uint56)
+
