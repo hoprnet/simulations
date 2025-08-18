@@ -32,3 +32,12 @@ class Block:
             raise NotImplementedError
             
         return self.idx == other.idx
+
+
+def get_ranges(from_block: Block, to_block: Block, max_range: int):
+    current_start = from_block
+
+    while current_start <= to_block:
+        current_end = min(current_start + (max_range - 1), to_block)
+        yield current_start, current_end
+        current_start = current_end + 1

@@ -1,63 +1,81 @@
 import asyncio
 import json
+from pathlib import Path
 
 import click
 
-from lib.colors import Color
 from lib.helper import asynchronous, progress_bar
-from lib.rpc.entries.log import Log
-from lib.rpc.entries.types.block import Block
-from lib.rpc.query_provider import ETHGetLogsRPCProvider
+from lib.rpc.entries.types.block import Block, get_ranges
+from lib.rpc.query_provider import ETHGetLogsRPCProvider, ProviderError
 
-from .rpc_url import RPCUrl
-
-MAX_SINGLE_QUERY_BLOCK_RANGE: int = 100
-
-
-def get_ranges(from_block: Block, to_block: Block, max_range: int):
-    current_start = from_block
-
-    while current_start <= to_block:
-        current_end = min(current_start + (max_range - 1), to_block)
-        yield current_start, current_end
-        current_start = current_end + 1
+from .config_parser import load_config_file
+from .rpc_url import RPC_URL_TYPE, RPCUrl
 
 
 @click.command()
-@click.option("--url", "-u", "urls", type=RPCUrl, multiple=True, help="RPC URLs to connect to")
+@click.option(
+    "--config",
+    type=click.Path(exists=True),
+    callback=load_config_file,
+    is_eager=True,  # Load before other options are processed
+    expose_value=False,  # We don't need to pass it to the function
+    help="Path to config file (json, yml/yaml, or ini)",
+)
+@click.option("--rpc1", type=RPC_URL_TYPE, help="RPC URL to connect to")
+@click.option("--rpc2", type=RPC_URL_TYPE, help="RPC URL to connect to")
 @click.option("--fromBlock", "from_block", type=Block, help="Starting block number")
 @click.option("--toBlock", "to_block", type=Block, help="Ending block number")
+@click.option("--out", "output_file", type=click.Path(), help="Output file path")
+@click.option("--address", "address", type=str, default=None, help="Ethereum address to filter logs")
+@click.option("--topics", "topics", type=str, multiple=True, help="Topics to filter logs")
+@click.option("--block-range", "block_range", type=int, help="Maximum block range for a single query")
 @asynchronous
-async def main(urls: list[RPCUrl], from_block: Block, to_block: Block):
-    logs: dict[str, list[dict]] = {}
+async def main(
+    rpc1: RPCUrl,
+    rpc2: RPCUrl,
+    from_block: Block,
+    to_block: Block,
+    output_file: Path,
+    address: str,
+    topics: list[str],
+    block_range: int,
+):
+    RPCs: dict[str, str] = {rpc.name: rpc.url for rpc in [rpc1, rpc2]}
 
-    for item in urls: 
-        print(*Color.BOLD_STRING, sep=item.url)
-        logs[item.url] = []
+    Path(output_file).parent.mkdir(parents=True, exist_ok=True)
 
-        for start, end in get_ranges(from_block, to_block, MAX_SINGLE_QUERY_BLOCK_RANGE):
-            if to_block != from_block:
-                progress_bar(start.idx, to_block.idx, percentage=(start.idx - from_block.idx) / (to_block.idx - from_block.idx))
-
-            sub_logs: list[Log] = await ETHGetLogsRPCProvider(item.url).get(
-                    fromBlock=start.idx,
-                    toBlock=end.idx,
-                    address=None,
-                    topics=[]
+    for start, end in get_ranges(from_block, to_block, block_range):
+        if to_block != from_block:
+            progress_bar(
+                start.idx, to_block.idx, percentage=(start.idx - from_block.idx) / (to_block.idx - from_block.idx)
             )
-            logs[item.url].extend([log.as_dict for log in sub_logs])
-        print(f" -> Found {len(logs[item.url])} logs")
 
-    for values in zip(*logs.values()):
-        if not all(value == values[0] for value in values):
-            print(
-                f"Discrepancy found: {[f"{val["block_number"]}/{val["transaction_hash"]}/{val["log_index"]}" for val in values]}")
-            break
-    else :
-        print("No discrepancies found.")
+        logs = {key: [] for key in RPCs.keys()}
 
-    with open("logs.json", "w") as f:
-        f.write(json.dumps(logs, indent=4))
+        for name, url in RPCs.items():
+            try:
+                logs[name].extend(
+                    await ETHGetLogsRPCProvider(url).get(
+                        fromBlock=start.idx, toBlock=end.idx, address=address, topics=[topics]
+                    )
+                )
+            except ProviderError as e:
+                print(f"Error fetching logs from {name} ({url}): {e}")
+
+        # check if the length of all values are the same
+        logs_lengths: dict[str, int] = {key: len(value) for key, value in logs.items()}
+
+        if logs_lengths["Erigon"] > logs_lengths["Nethermind"]:
+            print(" Discrepancy found: More logs with Erigon than Nethermind.")
+
+            with open(Path(f"{output_file}_{start.idx}_{end.idx}.json"), "w") as f:
+                data = {key: {"url":RPCs[key], "logs": [log.as_dict for log in value]}
+                        for key, value in logs.items()}
+                data["query"] = ETHGetLogsRPCProvider.get_query(
+                    fromBlock=start.idx, toBlock=end.idx, address=address, topics=[topics])
+                
+                f.write(json.dumps(data, indent=4))
+
 
 if __name__ == "__main__":
     asyncio.run(main())

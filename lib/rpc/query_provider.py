@@ -32,9 +32,14 @@ class RPCQueryProvider:
         }
 
     #### PRIVATE METHODS ####
-    async def _execute(self, params: Optional[dict] = None) -> tuple[dict, dict]:
+    def _get_query(self, params: Optional[dict]) -> dict:
         if params is not None and params != {}:
             self.query["params"] = [params]
+
+        return self.query
+
+    async def _execute(self, params: Optional[dict] = None) -> tuple[dict, dict]:
+        self._get_query(params)
 
         while True:
             try:
@@ -77,6 +82,10 @@ class RPCQueryProvider:
             return self._convert_result({}, 504)  # HTTP 504 Gateway Timeout
         else:
             return self._convert_result(*res)
+
+    @classmethod
+    def get_query(cls, **kwargs: Any) -> dict:
+        return cls("")._get_query(kwargs)
 
 class ETHCallRPCProvider(RPCQueryProvider):
     method: str = "eth_call"

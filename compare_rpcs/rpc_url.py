@@ -1,13 +1,25 @@
+import click
+
+
 class RPCUrl:
-    filler = "..."
-
-    def __init__(self, url: str):
+    def __init__(self, name: str, url: str):
+        self.name = name
         self.url = url
-        self._max_str_len = 31
 
-    @property
-    def short_url(self):
-        sub_len = (self._max_str_len - len(self.filler)) // 2
-        striped_url = self.url.split("://")[-1]
+    def __repr__(self):
+        return f"<RPCUrl name={self.name!r} url={self.url!r}>"
 
-        return striped_url[:sub_len] + self.filler + striped_url[-sub_len:]
+
+class RPCUrlParamType(click.ParamType):
+    name = "RPCUrl"
+
+    def convert(self, value, param, ctx):
+        if isinstance(value, RPCUrl):
+            return value  # Already parsed from config
+        if isinstance(value, str):
+            # If CLI passes a plain URL, give it a default name
+            return RPCUrl(name="custom", url=value)
+        self.fail(f"Invalid RPC URL: {value}", param, ctx)
+
+
+RPC_URL_TYPE = RPCUrlParamType()
