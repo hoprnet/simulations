@@ -46,8 +46,12 @@ class RPCQueryProvider:
                 async with (
                     aiohttp.ClientSession() as session,
                     session.post(self.url, json=self.query) as response,
-                ):
-                    return await response.json(), response.status
+                ):  
+                    try:
+                        return await response.json(), response.status
+                    except Exception as err:    
+                        logger.error(f"Error parsing response: {str(err)}")
+
             except TimeoutError as err:
                 logger.error(f"Timeout error : {str(err)}")
                 await asyncio.sleep(0.2)  # Retry after a short delay
