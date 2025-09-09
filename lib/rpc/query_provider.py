@@ -49,10 +49,10 @@ class RPCQueryProvider:
                 ):
                     return await response.json(), response.status
             except TimeoutError as err:
-                logger.error("Timeout error", {"error": str(err)})
+                logger.error(f"Timeout error : {str(err)}")
                 await asyncio.sleep(0.2)  # Retry after a short delay
             except Exception as err:
-                logger.error("Unknown error", {"error": str(err)})
+                logger.error(f"Unknown error {str(err)}")
                 await asyncio.sleep(0.2)  # Retry after a short delay
 
     def _convert_result(self, result: dict, status: int) -> Any:
