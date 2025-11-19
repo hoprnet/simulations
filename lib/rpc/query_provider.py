@@ -27,7 +27,6 @@ class RPCQueryProvider:
         self.query = {
             "jsonrpc": "2.0",
             "method": self.method,
-            # "params": [{"to": "", "data": ""}, "latest"],
             "id": 1,
         }
 

@@ -1,3 +1,4 @@
+from lib.hoprd_api.balance import Balance
 from lib.subgraph import Entry
 
 
@@ -10,9 +11,9 @@ class Safe(Entry):
         safe_allowance: str,
     ):
         self.node_address = node_address
-        self.wxHoprBalance = wxHoprBalance
+        self.wxHoprBalance = Balance(f"{wxHoprBalance} wxHOPR")
         self.safe_address = safe_address
-        self.safe_allowance = safe_allowance
+        self.safe_allowance = Balance(f"{safe_allowance} wxHOPR")
 
     @classmethod
     def fromSubgraphResult(cls, node: dict):
