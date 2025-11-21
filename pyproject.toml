@@ -22,10 +22,14 @@ dependencies = [
 
 [tool.uv.sources]
 rpc = { workspace = true }
+subgraph = { workspace = true }
+hoprd_api = { workspace = true }
 
 [tool.uv.workspace]
 members = [
-    "lib/rpc"
+    "lib/rpc",
+    "lib/subgraph",
+    "lib/hoprd_api",
 ]
 
 [dependency-groups]

@@ -13,6 +13,7 @@
     in rec {
       devShell = pkgs.mkShell {
         buildInputs = with pkgs; [
+          python314
           uv
         ];
 
