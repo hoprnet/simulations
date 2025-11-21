@@ -10,7 +10,7 @@ from lib.hoprd_api.balance import Balance
 from lib.hoprd_api.hoprd_api import HoprdAPI
 from lib.hoprd_api.response_objects import OwnChannel
 from lib.subgraph.providers import GraphQLProvider
-from redeemed_amount.subgraph.providers import Fundings
+from redeemed_amount.subgraph import Fundings
 
 load_dotenv()
 
