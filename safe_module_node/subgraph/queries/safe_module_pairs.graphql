@@ -1,0 +1,8 @@
+safeModulePairs(first: $first, skip: $skip) {
+  module {
+    id
+  }
+  safe {
+    id 
+  }
+}

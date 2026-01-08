@@ -1,0 +1,8 @@
+moduleNodePairs(first: $first, skip: $skip) {
+  module {
+    id
+  }
+  node {
+    id
+  }
+}
