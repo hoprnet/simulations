@@ -3,6 +3,11 @@ safeModulePairs(first: $first, skip: $skip) {
     id
   }
   safe {
-    id 
+    id
+    owners {
+      owner {
+        id
+      }
+    }
   }
 }
