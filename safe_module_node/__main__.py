@@ -39,7 +39,7 @@ async def main(network: str, output_file: str):
     with open(output_file, "w") as f:
         f.write("address,module_address,chain_key,deployed_block,deployed_tx_index,deployed_log_index\n")
         for index, triplet in enumerate(triplets):
-            f.write(f"{triplet.safe_address},{triplet.module_address},{triplet.node_address}, 30000000,{index},0\n")
+            f.write(f"{triplet.safe_address},{triplet.module_address},{triplet.node_address},30000000,{index},0\n")
 
 
 if __name__ == "__main__":
